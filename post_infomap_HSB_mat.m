@@ -1,9 +1,13 @@
 
 
 %% If loading from saved data
-% clear;close all;clc;
+clear;close all;clc;
 % filename = './Infomap/Infomap_BCP_220601.mat'
-filename = './Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
+% filename = './Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
+% filename = './Results/washu120/Gordon/230531/Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Results/washu120/Gordon/230531/Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
+filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/BCP_Dec_N177/eLABE_Y2_prelim_05062023/230616/Infomap_BCP_Dec_N177_low0.001_step0.001_high0.100_xdist20.mat'
+
 load(filename)
 % stats = stats{1}; % at sometime in 202205 I changed the Infomap stats results to a cell format so I can save multiple results
 params = stats.params
@@ -12,7 +16,7 @@ Nroi = size(params.roi,1)
 
 % figdir = fullfile('./Figures',params.IMap_fn);
 
-% load('MNI152nl_on_TT_coord_meshes_32k','MNIl','MNIr'); % adult711B
+%% load('MNI152nl_on_TT_coord_meshes_32k','MNIl','MNIr'); % adult711B
 load('MNI_coord_meshes_32k.mat','MNIl','MNIr');
 Anat.CtxL=MNIl;Anat.CtxR=MNIr;
 clear MNIl MNIr
@@ -23,7 +27,7 @@ clear MNIl MNIr
 Nets=unique(Cons.SortCons(:));
 Nnets=length(Nets);
 
-nameoption =1;
+nameoption = 1;
 switch nameoption
     case 1 % automatic color
         % % Option 1. % %
@@ -59,94 +63,21 @@ switch nameoption
         % and then manually update the classification in Util.makeCW
         
     case 3 % name according to template
-        template_match_threshold = 0.30; % minimum cutoff for pct_match/sim_mat
-        %         template = load('IM_13nets_246.mat');
-        %         template = load('IM_246inVol_Talairach_Seitzman2020_14nets(subcortical).mat');
-        template =load('IM_Gordon_13nets_333Parcels.mat');
-        template.IM.key = sortrows(template.IM.key,1);
-        
-        nTemplate = max(template.IM.key(:,2));
-        nCons = size(Cons.SortCons,2);
-        [pct_match,sim_mat] = deal(NaN(nTemplate,Nnets-1,nCons));
-        [VIn,MIn] = deal(NaN(1,nCons));
-        for iCons = 1:nCons
-            tmp = Cons.SortCons(:,iCons);tmp(tmp==0) = find(tmp==0)+1000; % add a large number so 0 is not a single community
-            [VIn(iCons), MIn(iCons)] = BCT.partition_distance(template.IM.key(:,2), tmp);
-            uniqueMatch = unique(Cons.SortCons(:,iCons));
-            uniqueMatch = setdiff(uniqueMatch,0)';
-            for i = 1:nTemplate
-                for j = uniqueMatch
-                    sim_mat(i,j,iCons) = dice(template.IM.key(:,2)==i, Cons.SortCons(:,iCons)==j); % measures how much the overlap between putative network and template
-                    pct_match(i,j,iCons) = mean(template.IM.key(Cons.SortCons(:,iCons)==j,2)==i)*100; % measures the percentage division of the nodes in the network belonging to each template
-                end
-            end
-        end
-        %         visualize
-        figure(991);
-        subplot(1,2,1);
-        imagesc(nanmean(sim_mat,3));
-        xticks(1:Nnets);
-        yticks(1:nTemplate);
-        yticklabels(template.IM.Nets);
-        ytickangle(45);
-        xlabel('tentative networks','interpreter','none');
-        ylabel(template.IM.name,'interpreter','none');
-        colorbar;
-        title('dice coefficient');
-        subplot(1,2,2);
-        imagesc(nanmean(pct_match,3));
-        xticks(1:Nnets);
-        yticks(1:nTemplate);
-        yticklabels(template.IM.Nets);
-        ytickangle(45);
-        xlabel('tentative networks','interpreter','none');
-        ylabel(template.IM.name,'interpreter','none');
-        colorbar;
-        title('% match to the network');
-        
-        % print report
-        %         [maxv,maxi] = maxk(nanmean(pct_match,3),3);
-        %         unclassified = maxv(1,:) < template_match_threshold;
-        %         for i = 1:length(maxi)
-        %             if unclassified(i)
-        %                 fprintf('Network %i: unclassified, %s = %2.0f %%, %s = %2.0f %%, %s = %2.0f %%,\n',i,template.IM.Nets{maxi(1,i)},maxv(1,i),template.IM.Nets{maxi(2,i)},maxv(2,i),template.IM.Nets{maxi(3,i)},maxv(3,i));
-        %             else
-        %                 fprintf('Network %i: %s, %s = %2.0f %%, %s = %2.0f %%, %s = %2.0f %%,\n',i,template.IM.Nets{maxi(1,i)},template.IM.Nets{maxi(1,i)},maxv(1,i),template.IM.Nets{maxi(2,i)},maxv(2,i),template.IM.Nets{maxi(3,i)},maxv(3,i));
-        %             end
-        %         end
-        
-        [maxv,maxi] = maxk(nanmean(sim_mat,3),3);
-        unclassified = maxv(1,:) < template_match_threshold;
-        for i = 1:length(maxi)
-            if unclassified(i)
-                fprintf('Network %i: unclassified, %s = %1.2f , %s = %1.2f , %s = %1.2f ,\n',i,template.IM.Nets{maxi(1,i)},maxv(1,i),template.IM.Nets{maxi(2,i)},maxv(2,i),template.IM.Nets{maxi(3,i)},maxv(3,i));
-            else
-                fprintf('Network %i: %s, %s = %1.2f , %s = %1.2f , %s = %1.2f ,\n',i,template.IM.Nets{maxi(1,i)},template.IM.Nets{maxi(1,i)},maxv(1,i),template.IM.Nets{maxi(2,i)},maxv(2,i),template.IM.Nets{maxi(3,i)},maxv(3,i));
-            end
-        end
-        
-        % and then manually update the classification in Util.makeCW
-    case 4 % already have the names saved in another file (after 2) and loading that
-        % Generate Consensus-wide naming/coloring convention structure
-        [CW,GenOrder] = Util.makeCW(params,Nnets); % I stored my manual assignment in this function
-        % N.B. the network names are in /DIAN folder hmmm
+        %%
+        parcel_name = 'eLABE_Y2_prelim_05062023'
+        [parcels_path] = Util.get_parcellation_path(parcel_name);
+        Parcels = ft_read_cifti_mod(parcels_path);
+        load(['/data/wheelock/data1/people/Cindy/BCP/ParcelPlots/Parcels_',parcel_name,'.mat'],'ROIxyz');
+        ParcelCommunities = ft_read_cifti_mod('/data/wheelock/data1/people/Cindy/BCP/Infomap/InfantTemplates/Kardan2022_communities.dlabel.nii');
+        template.IM = make_template_from_parcel(Parcels,ParcelCommunities,ROIxyz);
+%         template =load('IM_Gordon_13nets_333Parcels.mat');
+%         template = load('/data/wheelock/data1/parcellations/IM/Kardan_2022_DCN/IM_11_BCP94.mat');
+        % to-do: convert template from the cifti(see how I made the
+        % Wange Network parcels)
+        [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,template,0.1,'dice');
 end
 
-
-
 %% Re-Order Networks (vis,DMN,Mot,DAN,FPC,...)
-
-% % Option 1. Specify the order your networks will appear in figures
-% If you named and colored your networks, you may want them to appear in an
-% order mirrioring published papers (e.g. Eggebrecht et al., 2017 or Power et al., 2011)
-% orig_order=[1,2,3,4,5, 6,7,8,9,10, 11,12,13,14,15, 16,17,18,19,20];
-% GenOrder = [1,8,13,2,4, 9,10,18,5,12, 16,7,3,6,17, 11,19,14,15,20]';
-% GenOrder = [3,7,11,2,13,12,1,6,4,10,8,9,5];
-% GenOrder = [4,2,1,6,3,5,7:13];
-
-% % Option 2. Leave network order as default order (typically default output is largest to smallest)
-% GenOrder=1:max(Cons.SortCons(:));
-
 % The following code prepares the network order and color infomation
 CWro.Nets=CW.Nets(GenOrder);
 CWro.cMap=CW.cMap(GenOrder,:);
@@ -235,44 +166,34 @@ for j=toIM % Auto out of IM for each Cons model
     ylabel('Nrois','Color','w')
     xlim([0,max(IM.key(:,2)+1)]);
     set(gcf,'InvertHardCopy','off');
-%     print(gcf,fullfile(figdir,sprintf('%s_heatmap',IM.name)),'-dtiff')
+%     print(gcf,fullfile(params.outputdir,sprintf('%s_heatmap',IM.name)),'-dtiff')
     
     % if function, end here
     
     % Save the IM file
-%     save(['./Results/',IM.name],'IM');
+    save(fullfile(params.outputdir,[IM.name,'.mat']),'IM');
     
     %     end
 end
 
-%% Visualize Mean and Variance for IM model (double click IM model to load)
-% figure('Color','w','Units','Normalized','Position',[0.4,0.4,0.5,0.4]);
-% subplot(1,2,1);imagesc(rmatAve(IM.order,IM.order),[-0.6,0.6]);
-% axis square;title('Mean');colormap(gca,'jet');colorbar;
-% subplot(1,2,2);imagesc(rmatVar(IM.order,IM.order));
-% axis square;title('Variance');colormap(gca,'parula');colorbar;
-
 %% Visualize IM Model on Brain with Network Names and Colors
 params.radius = 4;
 Anat.alpha = 1;
-IM.cMap(end,:) = [0.3,0,0.6];
+IM.cMap(end,:) = [0.5,0.5,0.5];% set unassigned to gray
+
+figure; % this shows the sorted FC
 Matrix_Org3_HSB(stats.MuMat(IM.order,IM.order),...
     IM.key,10,[-0.3,0.3],IM.cMap,1); % mean
-% Anat.ctx='std';Plot.View_ROI_Modules(IM,Anat,IM.ROIxyz,params);
-% figure;histogram(IM.key(:,2));title(strrep(IM.name,'_',' '))
-% set(gca,'XTick',[1:max(IM.key(:,2))],'XTickLabel',IM.Nets);ylabel('Nrois')
-%%
-to_load = 'IM_Infomap_BCP_gp5_220304_Consesus_model_4';IM1 = load(to_load);
-left_lab = IM1.IM.Nets;
-to_load = 'IM_Infomap_BCP_gp4_220307_Consesus_model_4';IM2 = load(to_load);
-right_lab = IM2.IM.Nets;
 
-D = NaN(length(left_lab),length(right_lab));
-for i = 1:length(left_lab)
-    for j = 1:length(right_lab)
-        D(i,j) = sum(IM2.IM.key(IM1.IM.key(:,2)==i,2)==j);
-    end
-end
-
-h = Plot.alluvialflow(D, left_lab, right_lab, 'gp5(Consensus4) - gp4 (Consensus 4)',IM1.IM.cMap)
-
+figure; % this shows the center of the parcels in a sphere with radii params.radius
+Anat.ctx='std';Plot.View_ROI_Modules(IM,Anat,IM.ROIxyz,params);
+%% Visualize some stats
+figure;
+subplot(2,2,1);
+plot(stats.kdenth*100,stats.non_singleton);
+subplot(2,2,2);
+plot(stats.kdenth*100,stats.Nc);
+subplot(2,2,3);
+plot(stats.kdenth*100,stats.Cdns);
+subplot(2,2,4);
+plot(stats.kdenth*100,stats.AvgSil);

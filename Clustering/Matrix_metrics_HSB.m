@@ -1,3 +1,5 @@
+% This talks about using silhouette value to choose the optimal number of clusters https://www.mathworks.com/help/stats/clustering.evaluation.silhouetteevaluation.html#bt05vel
+
 function stats=Matrix_metrics_HSB(clrs,rmat0,rth,binarize)
 %
 % This function calculates the modularity for a set of clustering
@@ -57,7 +59,7 @@ for j=1:Nkden
     %         disp('Calculate Assortativity');
     degrees=sum(rmat)';
     [x,y]=find(triu(rmat,1));
-    b=[degrees(x),degrees(y)]-1;
+    b=[degrees(x),degrees(y)]-1;% JCT: don't understand why this is -1, it should not affect anything
     c=corrcoef(b);
     stats.A(j)=c(1,2);
     %         disp('Calculate Num Components etc (takes time)');
@@ -73,17 +75,24 @@ for j=1:Nkden
     stats.Cdns(j)=sum(R(:))/(Nroi*Nroi); % Connectedness
     
  
-    M = ones(max(clusters));
+    M = ones(max(clusters));noneidx = find(unique(clusters)==0);
+    M(noneidx,:) = 0; M(:,noneidx) = 0;M = M-diag(diag(M));
+    if isempty(noneidx)
+        keepnets = true(size(clusters));
+    else
+        keepnets = clusters~=noneidx;
+    end
     D = calc_correlationdist(rmat0);
     % calculate silhouette index
-    s = silhouette_coef_mod(clusters,D,M);
+    s = silhouette_coef_mod(clusters(keepnets),D(keepnets,keepnets),M);
     stats.AvgSil(j) = mean(s);
+    stats.StdSil(j) = std(s);
     
     % calculate the number of communities
-    stats.num_communities(j) = length(unique(clusters));
+    stats.num_communities(j) = length(setdiff(unique(clusters),0));
     
     % calculate the number of nonsingleton communities
-    stats.non_singleton(j) =  count_nonsingleton(clusters);
+    stats.non_singleton(j) =  count_nonsingleton(clusters(clusters~=0));
 end
 
 end

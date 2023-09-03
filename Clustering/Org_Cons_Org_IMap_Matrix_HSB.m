@@ -11,6 +11,10 @@ function [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,cMapTemp)
 ConsKdenSize=7; % was 5; has been 10, 5, 7 % CT: consecutive edge densities that are treated as a group
 f0=figure('Color','w');
 
+if ~isfield(stats.params,'killTH')
+    stats.params.killTH = 5;
+    warning('Assuming the minimum community size is 5 nodes as default, set a stats.params.killTH to change that.');
+end
 
 %% Organize to >=2
 stats.SortClus=OrgClustMat_HSB(stats.clusters,2); % ouput==0--> junk
@@ -47,39 +51,4 @@ Cons.epochs.mean_rth(j)=mean(stats.rth(...
     Cons.epochs.kden_i(j):Cons.epochs.kden_f(j)));
 end
 
-%% Stats of consensus models
-Cons.stats=Matrix_metrics_HSB(Cons.SortCons,FisherZ2R_HSB(stats.MuMat),...
-    Cons.epochs.mean_rth,stats.params.binary);
-
-Ncons=size(Cons.SortCons,2);
-
-%% Plot
-figure('position',[100 100 800 800]);
-subplot(2,2,1);
-plot([1:Ncons],Cons.stats.modularity,'bo-','LineWidth',2);
-axis([0,Ncons+1,0,1.1]);grid on
-set(gca,'XTick',[0:Ncons+1])
-xlabel('Consensus model');
-legend({'Modularity'},'Location','southeast');
-
-subplot(2,2,2);
-plot([1:Ncons],Cons.stats.NnBc,'ro-','LineWidth',2);
-set(gca,'XTick',[0:Ncons+1])
-xlabel('Consensus model');
-legend({'Proportion of nodes in the largest component'},'Location','southeast');
-
-subplot(2,2,3);
-plot([1:Ncons],Cons.stats.AvgSil,'ko-','LineWidth',2);
-grid on
-set(gca,'XTick',[0:Ncons+1])
-xlabel('Consensus model');
-legend({'Average Silhouette'},'Location','southeast');
-
-subplot(2,2,4);
-plot([1:Ncons],Cons.stats.num_communities,'ko-','LineWidth',2);
-grid on
-set(gca,'XTick',[0:Ncons+1])
-xlabel('Consensus model');
-legend({'Number of Communities'},'Location','southeast');
-
-
+end

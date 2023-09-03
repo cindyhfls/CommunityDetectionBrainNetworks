@@ -81,7 +81,7 @@ end
 if ~isfield(params,'fig'), params.fig=1;end
 
 %% assertions
-assert(sum(sum(isnan(rmat)))==0) % make sure NaNs have been removed already
+assert(sum(sum(isnan(rmat)))==0) % make sure NaNs have been removed already they should not contribute to the assignment or edge density
 %% Initialize outputs
 [~,Nroi,Nsubj]=size(rmat); 
 assert(Nsubj==1); % make sure any averaging takes place before this
@@ -102,22 +102,14 @@ params.writepathbase=[params.writepathbase,GCtempFname,'/'];
 cd(params.writepathbase) 
 writepath=params.writepathbase;
 
-
-%% Distance exclusion
-if isfield(params,'dmat')
-    dmat=params.dmat>params.xdist;
-    rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
-    clear dmat
-else params.xdist
-    dmat=pdist2(params.roi,params.roi)>params.xdist;
-    rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
-    clear dmat
-end
-
 %% Calc mean matrix across subjects
-rmat0=rmat.*(~eye(Nroi));
+rmat0=rmat.*(~eye(Nroi)); % remove diagonal correlation
 
 %% Do clustering
+if strcmp(params.type,'mst')
+            [MST] =backbone_wu_mod(rmat); %N.B.: I modified the BCT backbone function so that it only gets the backbone itself now
+end
+
 for j=1:Nkden
     
     disp(['Model ',num2str(j),' of ',num2str(Nkden)])
@@ -132,19 +124,39 @@ for j=1:Nkden
         case 'kden'
             EL=ceil(th(j)*NPE);
             rmat=triu(rmat,1);
-            [v,idx]=sort(rmat(:),'descend');
+            [v,idx]=sort(rmat(:),'descend'); 
             v((EL+1):length(UDidx))=0;
             rmat(idx)=v;
             rmat=max(rmat,rmat');
             rth(j)=v(EL);
             kdenth(j)=EL/NPE;
+        case 'mst'
+            notintree = rmat.*~MST;
+            v = sort(nonzeros(notintree),'descend');
+            cutoff = ceil(th(j)*NPE)*2-sum(MST(:)>0);
+            if cutoff>0
+                rth(j) = v(cutoff);
+                rmat = MST + notintree.*(notintree>=rth(j));
+            else
+                rth(j) = min(v);
+            end
+    end
+    
+    % Distance exclusion
+    if isfield(params,'dmat')
+        dmat=params.dmat>params.xdist;
+        rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
+        clear dmat
+    else params.xdist
+        dmat=pdist2(params.roi,params.roi)>params.xdist;
+        rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
+        clear dmat
     end
 
+    % binarize matrix
+    if params.binary, rmat=single(rmat>0); end
 
-% binarize matrix
-if params.binary, rmat=single(rmat>0); end
-
-% Write pajek file, do infomap, load and kill files
+    % Write pajek file, do infomap, load and kill files
     pajekfname=['paj_col',num2str(j),'.net'];
     mods(:,j)=infomap_wrapper_HSB(rmat,writepath,pajekfname,params.repeats);
 end
@@ -153,9 +165,6 @@ cd(here0)
 rmdir(GCtempFname,'s')
 cd(here);
 
-
-%% Metrics, outputs  
-stats= Matrix_metrics_HSB(mods,rmat0,rth,params.binary);
 stats.clusters=mods;            clear mods;
 stats.params=params;            clear params;
 stats.rth=rth;                  clear rth;        

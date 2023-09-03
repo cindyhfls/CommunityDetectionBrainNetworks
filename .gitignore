@@ -1,4 +1,6 @@
+tmp/
 Results/
 Backup/
 *.asv
 read_write_cifti/
+Parcels/

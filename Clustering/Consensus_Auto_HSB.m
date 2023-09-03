@@ -56,7 +56,7 @@ epochs=cell(Nth,1);         % th by th list
 
 %% Use basic thresholding
 for k=1:Nth
-    disp(['Calc consensus metrics at threshold = ',num2str(th(k))])
+    disp(['Calc consensus metrics at NMI value = ',num2str(th(k))])
     Ath=find(stats.nmi>=th(k));        % neighboring kden with NMI >= th
     if ~any(Ath)
         continue
