@@ -90,8 +90,13 @@ th=params.lo:params.step:params.hi;
 Nkden=length(th);
 UDidx=find(triu(ones(Nroi),1)==1);      % indices of unique conns
 mods=zeros(Nroi,Nkden,'single');       % Clustering labels
+codelength = zeros(1,Nkden);   
 [modularity,rth,kdenth,SI]=deal(zeros(Nkden,1,'single'));    % Modularity % r threshold % kden threshold  % Silhouette index           
-
+if params.repeats_consensus
+        stats.avgVersatility = NaN(1,Nkden);
+        stats.stdVersatility = NaN(1,Nkden);
+        stats.Versatility = NaN(Nroi,Nkden);
+end
 %% Organize file structure to a temp to kill folder tree
 cd(params.writepathbase)
 here0=pwd;
@@ -113,6 +118,7 @@ end
 for j=1:Nkden
     
     disp(['Model ',num2str(j),' of ',num2str(Nkden)])
+    tic
     rmat=rmat0;    
     
     % threshold matrix
@@ -138,8 +144,10 @@ for j=1:Nkden
                 rth(j) = v(cutoff);
                 rmat = MST + notintree.*(notintree>=rth(j));
             else
-                rth(j) = min(v);
+                rth(j) = max(v);
+                rmat = MST;
             end
+            kdenth(j) = nnz(rmat)/2/NPE;
     end
     
     % Distance exclusion
@@ -158,9 +166,43 @@ for j=1:Nkden
 
     % Write pajek file, do infomap, load and kill files
     pajekfname=['paj_col',num2str(j),'.net'];
-    mods(:,j)=infomap_wrapper_HSB(rmat,writepath,pajekfname,params.repeats);
-end
+    if params.repeats_consensus
+        partitions = NaN(Nroi,params.repeats);
+        cl= NaN(1,params.repeats);
+        for k = 1:params.repeats
+           [partitions(:,k),cl(k)] = infomap_wrapper_HSB(rmat,writepath,pajekfname,1);
+        end    
+        [stats.Versatility(:,j),stats.avgVersatility(j),stats.stdVersatility(j)] = get_nodal_versatility(partitions); % average versatility                
+       
+       
+        % use the highest quality/lowest codelength partition
+         codelength(j) = min(cl);
+         mods(:,j) = partitions(:,find(cl==min(cl),1));
+%         % old:lazy method for finding the best partition
+%         [up,ucounts] = unique_partitions(partitions);
+%         if sum(max(ucounts)==ucounts)==1
+%             % if there exists a partition that occurs most often, use that
+%             % as the partition for the current threshold 
+%             mods(:,j) = up(:,max(ucounts)==ucounts);
+%         else
+%             % Otherwise use Hungarian algorithm to match all partitions to the first column and find the
+%             % mode of each node as its assignment for the current threshold  (would
+%             % it take very long for large partitions?)
+%             partitions(:,2:size(partitions,2))= cell2mat(arrayfun(@(kk)pair_labeling(partitions(:,1),partitions(:,kk)),2:size(partitions,2),'UniformOutput',false));
+%             mods(:,j) = mode(partitions,2);
+%         end       
+        
+        % old: consensus clustering approach: seems to be stuck on some
+        % densities and also takes unnecessarily long?
+%         A = agreement(partitions)/params.repeats; % agreement matrix % 
+%         mods(:,j) = consensus_und_mod(A,0.1,20,@infomap_wrapper_HSB); % not sure if 0.1 is the right threshold or 20 is enough runs
 
+    else
+        [mods(:,j),codelength(j)]=infomap_wrapper_HSB(rmat,writepath,pajekfname,params.repeats);
+    end
+    delete('*clu*','*net*')
+    toc
+end
 cd(here0)
 rmdir(GCtempFname,'s')
 cd(here);
@@ -170,3 +212,6 @@ stats.params=params;            clear params;
 stats.rth=rth;                  clear rth;        
 stats.kdenth=kdenth;            clear kdenth;  
 stats.MuMat=rmat0;              clear rmat0;
+stats.codelength = codelength; clear codelength
+
+

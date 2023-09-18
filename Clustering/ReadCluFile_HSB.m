@@ -1,4 +1,4 @@
-function M=ReadCluFile_HSB(fn)
+function [M,codelengthTwoLevels]=ReadCluFile_HSB(fn)
 %
 % This function reads in a *.clu file output from infomap (current version
 % 0.18.9 as of 9/20/2016).
@@ -10,7 +10,12 @@ function M=ReadCluFile_HSB(fn)
 
 
 fid=fopen(fn,'r');
-tsc=textscan(fid,'%f %f %f','HeaderLines',2);
+l = fgetl(fid);
+tsc=textscan(fid,'%f %f %f','HeaderLines',1);
 fclose(fid);
 M=[double(tsc{1}),double(tsc{2}),double(tsc{3})];
 M=sortrows(M,1);
+
+% Extract codelength in two levels
+codelengthTwoLevels_match = regexp(l, 'codelength (\d+\.\d+) in 2 levels', 'tokens');
+codelengthTwoLevels = str2double(codelengthTwoLevels_match{1});

@@ -1,6 +1,6 @@
 % This talks about using silhouette value to choose the optimal number of clusters https://www.mathworks.com/help/stats/clustering.evaluation.silhouetteevaluation.html#bt05vel
 
-function stats=Matrix_metrics_HSB(clrs,rmat0,rth,binarize)
+function stats=Matrix_metrics_HSB(clrs,rmat0,rth,binarize,type,kdenth)
 %
 % This function calculates the modularity for a set of clustering
 % assignments for a given rmatrix. This metric is based on Newman, 2004.
@@ -11,18 +11,37 @@ function stats=Matrix_metrics_HSB(clrs,rmat0,rth,binarize)
 % 20230530: add in silhouette index, number of communities and number of
 % non-singleton communities
 
+% 20230914 change input structure
+
+
 %% Set parameters
 [Nroi,Nkden]=size(clrs);
 stats.modularity=zeros(Nkden,1);
 rmat=zeros(size(rmat0),'single');
 UDidx=triu(ones(Nroi),1)==1;
 domod=1;
-
+NPE=Nroi*(Nroi-1)/2;
 %% Calculate modularity
+ if strcmp(type,'mst')
+            [MST] =backbone_wu_mod(rmat0); %N.B.: I modified the BCT backbone function so that it only gets the backbone itself now
+end
 for j=1:Nkden
     
     rmat=rmat0;
-    rmat(rmat0<rth(j))=0;                      % Threshold
+   if strcmp(type,'mst')
+       notintree = rmat.*~MST;
+            v = sort(nonzeros(notintree),'descend');
+            cutoff = ceil(kdenth(j)*NPE)*2-sum(MST(:)>0);
+            if cutoff>0
+                rmat = MST + notintree.*(notintree>=rth(j));
+            else
+                rmat = MST;
+            end
+   else
+         rmat(rmat0<rth(j))=0;                      % Threshold
+   end
+  
+    
     if binarize, rmat=single(rmat>0); end      % Binarize
     
     if domod==1
@@ -74,19 +93,29 @@ for j=1:Nkden
     stats.NnBc(j)=max(sum(R))/Nroi; % Nn in biggest component
     stats.Cdns(j)=sum(R(:))/(Nroi*Nroi); % Connectedness
     
- 
-    M = ones(max(clusters));noneidx = find(unique(clusters)==0);
-    M(noneidx,:) = 0; M(:,noneidx) = 0;M = M-diag(diag(M));
-    if isempty(noneidx)
-        keepnets = true(size(clusters));
-    else
-        keepnets = clusters~=noneidx;
-    end
+ M = ones(max(clusters));M = M-diag(diag(M));
+%     M = ones(max(clusters));noneidx = find(unique(clusters)==0);
+%     M(noneidx,:) = 0; M(:,noneidx) = 0;M = M-diag(diag(M));
+%     if isempty(noneidx)
+%         keepnets = true(size(clusters));
+%     else
+%         keepnets = clusters~=noneidx;
+%     end
+    keepnets = clusters~=0;
     D = calc_correlationdist(rmat0);
+    
     % calculate silhouette index
-    s = silhouette_coef_mod(clusters(keepnets),D(keepnets,keepnets),M);
-    stats.AvgSil(j) = mean(s);
-    stats.StdSil(j) = std(s);
+    s = silhouette_coef_mod(clusters(keepnets),D(keepnets,keepnets),M); % use my own silhouette instead of MATLAB because I wanted to calculate correlation distance without the diagonal and also MATLAB R2020b version seems to get the wrong numbers 
+    stats.AvgSil(j) = nanmean(s);
+    stats.StdSil(j) = nanstd(s);
+    
+    % Calculate Davies-Bouldin index
+    tmp = evalclusters(double(rmat0(keepnets,keepnets)),clusters(keepnets),'DaviesBouldin');
+    stats.DB(j) = tmp.CriterionValues;
+    
+    % Calculate Calinski-Harabasz index
+    tmp = evalclusters(double(rmat0(keepnets,keepnets)),clusters(keepnets),'CalinskiHarabasz');
+    stats.CH(j) = tmp.CriterionValues;
     
     % calculate the number of communities
     stats.num_communities(j) = length(setdiff(unique(clusters),0));
@@ -117,8 +146,8 @@ function [ silhouettes,alternativeid ] = silhouette_coef_mod( parcels, D, neigh 
 
 n = length(D);
 num = max(parcels);
-silhouettes = zeros(n,1);
-alternativeid = zeros(n,1);
+silhouettes = NaN(n,1);
+alternativeid = NaN(n,1);
 for i = 1 : num
     in_members = parcels == i;
     nk = sum(in_members);
@@ -141,7 +170,7 @@ for i = 1 : num
     alternativeid(in_members) = min_id;
 end
 
-assert(sum(isnan(silhouettes))==0);
+% assert(sum(isnan(silhouettes))==0);
 
 end
 

@@ -23,7 +23,7 @@ end
         [VIn,MIn] = deal(NaN(1,nCons));
         for iCons = 1:nCons
             tmp = Cons.SortCons(:,iCons);tmp(tmp==0) = find(tmp==0)+1000; % add a large number so 0 is not a single community
-            [VIn(iCons), MIn(iCons)] = BCT.partition_distance(templateKey, tmp);
+            [VIn(iCons), MIn(iCons)] = partition_distance(templateKey, tmp);
             uniqueMatch = unique(Cons.SortCons(:,iCons));
             uniqueMatch = setdiff(uniqueMatch,0)';
             for i = 1:nTemplate
@@ -105,7 +105,5 @@ end
         
         idxwithnone = idx;idxwithnone(any(string(CW.Nets)==["None","USp"],2))= Inf;
         [~,GenOrder] = sort(idxwithnone);
-        
-        
-        
+   
 end

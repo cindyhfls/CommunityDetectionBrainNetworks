@@ -1,7 +1,7 @@
-function Plot_InfoMap_Metrics_HSB(stats)
+function Plot_InfoMap_Metrics_HSB(stats,clusters)
 %
 %
-[Nroi,Nanals]=size(stats.clusters);
+[Nroi,Nanals]=size(clusters);
 
 figure('Color','w','Position',[20,110,900,800])
 

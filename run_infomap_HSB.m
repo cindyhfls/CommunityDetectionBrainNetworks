@@ -5,7 +5,8 @@ clear;clc;close all;
 path_to_code = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup' % state the directory for this code
 cd(path_to_code);
 addpath(genpath(path_to_code));
-
+global infomappath
+infomappath =fullfile(path_to_code,'/ExternalFunctions/infomap/Infomap')
 %% set your output directory to save files to
 outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap';
 params.format = 'mat'; % 'mat' or 'cifti' % N.B.: has not tested cifti yet
@@ -44,6 +45,7 @@ switch params.format
         params.dmat = parcels_dmat;% use geodesic distance
 end
 %% Set parameters for use in Infomap
+params.repeats_consensus = 1;
 params.binary=0;     % Whether or not to Infomap with weights. Default=0;
 params.type = 'mst'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
 if strcmp(params.type,'mst')
@@ -52,12 +54,12 @@ if strcmp(params.type,'mst')
 else
     params.lo=0.001;      % Edge density minimum, typically 1% for ROIs
 end
-params.step=0.001;   % Edge density step, typically 0.001
-params.hi=0.1;      % Edge density maximum, typically 0.1
-params.xdist=20;     % Exclusion distance to minimize PSF shared variance
+params.step=0.0025;   % Edge density step, typically 0.001
+params.hi=0.15;      % Edge density maximum, typically 0.1
+params.xdist=0;     % Exclusion distance to minimize PSF shared variance
 params.fig = 0; % plot some figures
 if strcmp(params.format,'mat')
-    params.repeats = 1000; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is
+    params.repeats = 500; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is % Power et al. 2011 used 1000 but I think that's too many
     params.killTH = 5; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
 elseif strcmp(params.format,'cifti')
     params.repeats = 100; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is
@@ -77,37 +79,24 @@ if ~exist(outputdir,'dir')
 end
 
 %% Calculate some stats
-stats= Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);
-
-%% Display something about results
-
-if stats.params.fig
-    Plot_InfoMap_Metrics_HSB(stats); % Not quite clearly labeled   
-end
-
-%% Run Consensus Procedure to reduce the number of networks
-% uses normalized mutual information across thresholds specified in params
-
-% if loading mat again after clearing the space comment the two lines below out
-tmp = smartload(stats.params.zmatfile);
-stats.MuMat = mean(tmp,3);
-
-[Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats); % this is Adam's original workflow to find stable groups with high NMI in the neighboring thresholds, I will update that with a different function
-
-Cons = Cons_stats_HSB(Cons,stats);
-stats.SortedStats = Matrix_metrics_HSB(stats.SortClus,stats.MuMat,stats.rth,stats.params.binary);
-
+% stats.metrics = Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);
+stats.metrics = Matrix_metrics_HSB_mod(stats);
 %% Save the results in a stats structure
 
 stats.params.dmat = [];% let's not save the dmat as they might be hugeee for vertex-wise
 stats.MuMat = [];% let's not save the matrix as they might be hugeee for vertex-wise
 
 cd(outputdir)
-save(params.IMap_fn,'stats','Cons'); % save infomap output to matrix
+save(fullfile(outputdir,params.IMap_fn),'stats'); % save infomap output to matrix
 
 close all;
+%% Display something about results
 
-
+if stats.params.fig
+    stats.metrics.kdenth = stats.kdenth;stats.metrics.rth = stats.rth;
+    Plot_InfoMap_Metrics_HSB(stats.metrics,stats.clusters); % Not quite clearly labeled   
+    stats.metrics =rmfield(stats.metrics,{'kdenth','rth'});
+end
 
 %% Back up this file
 

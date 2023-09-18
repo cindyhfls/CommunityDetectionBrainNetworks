@@ -50,14 +50,14 @@ while flg == 1
     else
         ci = zeros(n,reps);
         for iter = 1:reps
-            ci(:,iter) = BCT.community_louvain(dt);
+            ci(:,iter) = community_louvain(dt);
         end
         ci = relabel_partitions(ci);
         ciu = unique_partitions(ci);
         nu = size(ciu,2);
         if nu > 1
             flg = 1;
-            d = BCT.agreement(ci)./reps;
+            d = agreement(ci)./reps;
         end
     end
     
