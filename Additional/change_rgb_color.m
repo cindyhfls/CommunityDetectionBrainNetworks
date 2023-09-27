@@ -2,11 +2,11 @@ function RGB2 = change_rgb_color(RGB)
 % make a slightly different color
 
 HSV = rgb2hsv(RGB);
-if HSV(1)<0.5 % hue
-    HSV(1) = HSV(1)+0.1;
-else
-    HSV(1) = HSV(1)-0.1;
-end
+% if HSV(1)<0.5 % hue
+%     HSV(1) = HSV(1)+0.1;
+% else
+%     HSV(1) = HSV(1)-0.1;
+% end
 if HSV(2)<0.5 % saturation
     HSV(2) = HSV(2)+0.2;
 else

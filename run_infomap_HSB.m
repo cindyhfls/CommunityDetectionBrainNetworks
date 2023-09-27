@@ -17,6 +17,7 @@ parcel_name ='Gordon'% leave empty if params.format = cifti %should match the na
 
 if strcmp(params.format,'mat')
     outputdir = fullfile(outputdir,'parcel-wise',datasetname,parcel_name,datestr(datetime('now'),'yymmdd'));
+    params.parcel_name = parcel_name;
 elseif strcmp(params.format,'cifti')
     outputdir = fullfile(outputdir,'vertex-wise',datasetname,datestr(datetime('now'),'yymmdd'));
 end
@@ -60,10 +61,10 @@ params.xdist=0;     % Exclusion distance to minimize PSF shared variance
 params.fig = 0; % plot some figures
 if strcmp(params.format,'mat')
     params.repeats = 500; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is % Power et al. 2011 used 1000 but I think that's too many
-    params.killTH = 5; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
+%     params.killTH = 5; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
 elseif strcmp(params.format,'cifti')
     params.repeats = 100; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is
-    params.killTH = 400; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
+%     params.killTH = 400; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
 end
 tmp = dir(zmatfile);
 params.zmatfile = fullfile(tmp.folder,tmp.name);

@@ -1,6 +1,6 @@
-function [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,cMapTemp)
+function [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,cMapTemp,ConsKdenSize)
 
-% This function organizes module labels across edge densities in 
+% This function organizes module labels across edge densities in
 % a matrix of ROI-by-kden output from InfoMap. It then calculates a model
 % of the concensus across the matrix. This works best when the steps
 % between kden are <=0.01, the smaller the better.
@@ -8,7 +8,9 @@ function [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,cMapTemp)
 % few members (N-cuttoff is 5 for ROI and 100 for voxels/nodes).
 
 %% Parameters and Initialization
-ConsKdenSize=7; % was 5; has been 10, 5, 7 % CT: consecutive edge densities that are treated as a group
+if ~exist('ConsKdenSize','var')||isempty(ConsKdenSize)
+    ConsKdenSize=7; % was 5; has been 10, 5, 7 % CT: consecutive edge densities that are treated as a group
+end
 f0=figure('Color','w');
 
 if ~isfield(stats.params,'killTH')
@@ -25,7 +27,7 @@ title(['InfoMap; N=',num2str(length(unique(stats.SortClus(:)))),...
 set(gca,'YScale','log')
 
 %% Consensus
-if ~exist('cMapTemp','var')
+if ~exist('cMapTemp','var')||isempty(cMapTemp)
     cMapTemp=jet(max(stats.SortClus(:)));
 end
 [Cons]=Consensus_Auto_HSB(stats,cMapTemp,ConsKdenSize);
@@ -45,10 +47,10 @@ title(['Consensus; N=',num2str(length(unique(Cons.SortCons(:)))),...
 set(gca,'YScale','log')
 
 for j=1:size(Cons.SortCons,2)
-Cons.epochs.mean_kden(j)=mean(stats.kdenth(...
-    Cons.epochs.kden_i(j):Cons.epochs.kden_f(j)));
-Cons.epochs.mean_rth(j)=mean(stats.rth(...
-    Cons.epochs.kden_i(j):Cons.epochs.kden_f(j)));
+    Cons.epochs.mean_kden(j)=mean(stats.kdenth(...
+        Cons.epochs.kden_i(j):Cons.epochs.kden_f(j)));
+    Cons.epochs.mean_rth(j)=mean(stats.rth(...
+        Cons.epochs.kden_i(j):Cons.epochs.kden_f(j)));
 end
 
 end

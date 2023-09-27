@@ -63,91 +63,41 @@ partition_centers =find(islocalmin(stats.avgVersatility,'FlatSelection','first')
 %% Run Consensus Procedure to reduce the number of networks -> planning to replace this
 % uses normalized mutual information across thresholds specified in params
 
-% Adam's original method [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats); % this is Adam's original workflow to find stable groups with high NMI in the neighboring thresholds, I will update that with a different function
+% Adam's original method (finding stable neighboring threshold with at least x consecutive)
+% [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,[],4); % this is Adam's original workflow to find stable groups with high NMI in the neighboring thresholds, I will update that with a different function
 % Updated to calculate pairwise NMI
 [Cons,stats] = Find_Stable_Levels_HSB(stats,partition_centers); % consensus by finding stable levels from the 
 
 Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus
-stats.SortedStats = Matrix_metrics_HSB(stats.SortClus,stats.MuMat,stats.rth,stats.params.binary,stats.params.type,stats.kdenth);
+% stats.SortedStats = Matrix_metrics_HSB(stats.SortClus,stats.MuMat,stats.rth,stats.params.binary,stats.params.type,stats.kdenth);
 
-save(filename,'Cons','-append'); % save infomap output to matrix
+% save(filename,'Cons','-append'); % save infomap output to matrix
 
-%% load('MNI152nl_on_TT_coord_meshes_32k','MNIl','MNIr'); % adult711B
+%% load MNI mesh
 load('MNI_coord_meshes_32k.mat','MNIl','MNIr');
 Anat.CtxL=MNIl;Anat.CtxR=MNIr;
 clear MNIl MNIr
 
-
-%% Label and Color Brain Networks identified by Infomap
-
-% Find the unique networks identified by Infomap
-Nets=unique(Cons.SortCons(:));
-Nnets=length(Nets);
-
+%%
 nameoption = 3
-switch nameoption
-    case 1 % automatic color
-        % % Option 1. % %
-        % Auto name 1-#ROI and color based on Jet color lookup table
-        AutoName=1;
-        CW.cMap = linspecer(Nnets-1);
-        CW.Nets=cell(Nnets-1,1);
-        for j=1:Nnets    
-            if j<10
-                CW.Nets{j,1}=['N0',num2str(j)];
-            else
-                CW.Nets{j,1}=['N',num2str(j)];
-            end
-        end
-        GenOrder=1:max(Cons.SortCons(:));
-        
-    case 2 % save the network assignment and manually name them
-        % % Option 2. % %
-        % Name and color networks manually (e.g. for final poster or paper)
-        
-        % Look at ROIs on cortical surface and take screen shot; press space to advance to next network
-        % screen shot networks and save (e.g. to ppt) for labeling
-        AutoName=0;
-        close all;
-        for j=1:Nnets
-            Vis_IM_ROI_Module_HSB(Cons.SortCons,stats,Anat,j,Nroi);
-            %     print(gcf,['./Figures/',params.IMap_fn,'network',num2str(j)],'-dtiff','-r0');
-            img = getframe(gcf);
-            %             imwrite(img.cdata,['network',sprintf('%02d',j-1),'.tif'])
-            pause;
-            close;
-        end
-        % and then manually update the classification in Util.makeCW
-        
-    case 3 % name according to template
-        %%
-%         parcel_name = 'Gordon'%'eLABE_Y2_prelim_05062023'
-%         [parcels_path] = Util.get_parcellation_path(parcel_name);
-%         Parcels = ft_read_cifti_mod(parcels_path);
-%         load(['Parcels_',parcel_name,'.mat'],'ROIxyz');
-%         ParcelCommunities = ft_read_cifti_mod('Kardan2022_communities.dlabel.nii');
-%         ParcelCommunities = ft_read_cifti_mod('Parcel_Communities_cortexonly_12Networks.dlabel.nii')
-%         template.IM = make_template_from_parcel(Parcels,ParcelCommunities,ROIxyz);
-        template =load('/data/wheelock/data1/parcellations/IM/IM_Gordon_2016_333_Parcels_13nets.mat');
-%         template = load('/data/wheelock/data1/parcellations/IM/Kardan_2022_DCN/IM_11_BCP94.mat');
-        % to-do: convert template from the cifti(see how I made the
-        % Wange Network parcels)
-        [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,template,0.1,'dice');
-end
-
-%% Re-Order Networks (vis,DMN,Mot,DAN,FPC,...)
-% The following code prepares the network order and color infomation
-CWro.Nets=CW.Nets(GenOrder);
-CWro.cMap=CW.cMap(GenOrder,:);
-foo=Cons.SortCons;foo(foo==0)=NaN;
-Cons.SortConsRO=Cons.SortCons;
-for j=1:length(GenOrder),Cons.SortConsRO(foo==GenOrder(j))=j;end
-foo=Cons.SortConsRO;
-
-
+[foo, CWro,Cons] = assign_network_colors(Cons,nameoption) % currently using Gordon 13 network colors as default
 %% Visualize Networks-on-brain and Consensus Edge Density Matrix
 Explore_ROI_kden_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
 
+%% (Alternatively) Visualize the parcels
+parcel_name ='Gordon'% params.parcel_name
+load(['Parcels_',parcel_name,'.mat'],'Parcels');
+figure('position',[100 100 400 300]);
+for i = 1:size(foo,2)
+    key = foo(:,i);
+    plot_network_assignment_parcel_key(Parcels, key,CWro.cMap,CWro.Nets)  
+  text(0.72,0,sprintf('Avg density = %2.2f%%',Cons.epochs.mean_kden(i)*100),'Units','Normalized')
+%     plot_network_assignment_parcel_key(Parcels, key,CWro.cMap,CWro.Nets)
+%     text(0.1,1.5,sprintf('Avg density = %2.2f%%',Cons.epochs.mean_kden(i)*100),'Units','Normalized')
+%     print([params. outputdir,'/Consensus_Model_',num2str(i)],'-dpng')
+    pause;
+    clf
+end
 %% Generate Infomap (IM) Structure for Viable Edge Density Ranges
 % Viable = edge densities in which connectivity >80% (see figure output
 % from Org_Cons_Org_Imap_Matrix)

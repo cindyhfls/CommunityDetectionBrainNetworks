@@ -98,7 +98,7 @@ end
             if length(matchnet)>1
                 for k = 2:length(matchnet)
                     CW.Nets{matchnet(k)}=[CW.Nets{matchnet(k)},num2str(k)];
-                    CW.cMap(matchnet(k),:) = change_rgb_color(CW.cMap(matchnet(k),:));
+                    CW.cMap(matchnet(k),:) = change_rgb_color(CW.cMap(matchnet(k-1),:));
                 end
             end
         end
