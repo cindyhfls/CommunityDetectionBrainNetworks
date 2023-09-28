@@ -3,7 +3,7 @@ function Gout=Fix_US_Grouping_HSB(Min,k)
 % This function takes an ROI or voxel-wise InfoMap grouping matrix
 % Min that is (Nroi,Nkden), selects a column to base the model off of, and
 % then fills in grouping assignments for the ROIs in col k that are listed
-% as 'UnSpecified' (defined as group==80).
+% as 'UnSpecified' (defined as group==0).
 % The algorithm steps to higher edge density (lower correlation) to test
 % for grouping membership. If the group matches one that already exists,
 % then the renaming of that ROI is complete. If not, it checks to see if

@@ -1,4 +1,4 @@
-function [foo, CWro,Cons] = assign_network_colors(Cons,nameoption,templatepath)
+function [CWro,Cons] = assign_network_colors(Cons,nameoption,templatepath,parcelpath)
 %%
 if ~exist('templatepath','var')||isempty(templatepath)
     templatepath = 'IM_Gordon_2014_333_Parcels.mat';
@@ -47,17 +47,13 @@ switch nameoption
         
     case 3 % name according to template
         %%
-%         parcel_name = 'Gordon'%'eLABE_Y2_prelim_05062023'
-%         [parcels_path] = Util.get_parcellation_path(parcel_name);
-%         Parcels = ft_read_cifti_mod(parcels_path);
-%         load(['Parcels_',parcel_name,'.mat'],'ROIxyz');
-%         ParcelCommunities = ft_read_cifti_mod('Kardan2022_communities.dlabel.nii');
-%         ParcelCommunities = ft_read_cifti_mod('Parcel_Communities_cortexonly_12Networks.dlabel.nii')
-%         colortemplate.IM = make_template_from_parcel(Parcels,ParcelCommunities,ROIxyz);
-        colortemplate =load(templatepath);
-%         template = load('/data/wheelock/data1/parcellations/IM/Kardan_2022_DCN/IM_11_BCP94.mat');
-        % to-do: convert template from the cifti(see how I made the
-        % Wange Network parcels)
+        if contains(templatepath,'.mat')
+            colortemplate =load(templatepath);
+        elseif contains(templatepath,'.nii')
+            Parcels = cifti_read(parcelpath);
+            ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
+            colortemplate.IM = make_template_from_parcel(Parcels,ParcelCommunities);
+        end
         [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,colortemplate,0.1,'dice');
 end
 
@@ -68,4 +64,4 @@ CWro.cMap=CW.cMap(GenOrder,:);
 foo=Cons.SortCons;foo(foo==0)=NaN;
 Cons.SortConsRO=Cons.SortCons;
 for j=1:length(GenOrder),Cons.SortConsRO(foo==GenOrder(j))=j;end
-foo=Cons.SortConsRO;
+% foo=Cons.SortConsRO;

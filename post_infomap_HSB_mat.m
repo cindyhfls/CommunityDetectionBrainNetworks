@@ -68,7 +68,7 @@ partition_centers =find(islocalmin(stats.avgVersatility,'FlatSelection','first')
 % Updated to calculate pairwise NMI
 [Cons,stats] = Find_Stable_Levels_HSB(stats,partition_centers); % consensus by finding stable levels from the 
 
-Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus
+Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus and plot the figure
 % stats.SortedStats = Matrix_metrics_HSB(stats.SortClus,stats.MuMat,stats.rth,stats.params.binary,stats.params.type,stats.kdenth);
 
 % save(filename,'Cons','-append'); % save infomap output to matrix
@@ -125,9 +125,9 @@ for j=toIM % Auto out of IM for each Cons model
     Nets=CWro.Nets;
     
     % Add a way to fix USp?
-%     temp=Fix_US_Grouping_HSB(Cons.SortConsRO,j); %This code attempts to assign unspecified ROIs to networks, when possible
-    %         temp(string(Nets)=='None'|string(Nets)=='Usp')=0;
-    % temp=squeeze(Cons.SortConsRO(:,j));
+    temp=Fix_US_Grouping_HSB(Cons.SortConsRO,j); %This code attempts to assign unspecified ROIs to networks, when possible
+            temp(string(Nets)=='None'|string(Nets)=='Usp')=0;
+    temp=squeeze(Cons.SortConsRO(:,j));
     
     % USp networks with less than 5
 %     NnetsI=unique(temp);
@@ -137,7 +137,7 @@ for j=toIM % Auto out of IM for each Cons model
 
     temp = Cons.SortConsRO(:,j);
     if any(temp==0)
-        temp(temp==0)=size(cMap,1)+1; % Unspecified network became the largest
+        temp(temp==0)=size(cMap,1)+1; % Unspecified network became the last network
         cMap=cat(1,cMap,[0.25,0.25,0.25]);% gray for USp
         %             cMap = cat(1,cMap,[1,1,0.8]); % a very light yellow for USp
         Nets=cat(1,Nets,'None');

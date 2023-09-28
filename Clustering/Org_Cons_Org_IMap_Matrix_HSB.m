@@ -38,7 +38,7 @@ title(['Consensus; N=',num2str(length(unique(Cons.Consensus(:)))),...
     ' unique modules'])
 set(gca,'YScale','log')
 
-%% Organize to >=5
+%% Organize to >=killTH
 Cons.SortCons=OrgClustMat_HSB(Cons.Consensus,stats.params.killTH);
 subplot(3,1,3);
 histogram(Cons.SortCons(:),[-1:(1+max(Cons.SortCons(:)))])

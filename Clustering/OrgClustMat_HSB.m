@@ -44,10 +44,10 @@ matOUT(:,1)=matIN(:,1); % 1st col is key
 %% Cycle through other columns
 for j=2:Nkden
     key=squeeze(matOUT(:,(j-1)));   % earlier column values
-    KeyVals=unique(key); 
+    KeyVals=setdiff(unique(key),0); % update 2023.09.28 JCT
     Nold=length(KeyVals);
     new=squeeze(matKey(:,j));        % to-re-organize column values
-    NewVals=unique(new);      
+    NewVals=unique(new(~isnan(new)));% update 2023.09.28 JCT
     Nnew=length(NewVals);
     
     % Make a matrix of # overlaps
@@ -116,5 +116,7 @@ matOUTa=zeros(Nroi,Nkden);
 for j=1:size(vals,1)
     matOUTa(matOUT==vals(j))=j;
 end
-matOUTa=matOUTa-1;% keep junk as zero
+if any(vals==0)
+    matOUTa=matOUTa-1;% keep junk as zero
+end
 matOUTa=single(matOUTa);

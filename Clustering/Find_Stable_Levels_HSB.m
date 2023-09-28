@@ -20,10 +20,8 @@ for i = 1:nclusters
     end
 end
 NMI_dist = NMI_dist+NMI_dist';
-
-%% For each partition center,assign the solution that is closest
-% reduce the number of partition centers
-nmi_th = 0.1; %NMI = 0.9
+%% reduce the number of partition centers
+nmi_th = 0.1; %NMI = 0.9 # this is semi-arbitrary
 
 for k = 1:length(partition_centers)-1
     if k==1
@@ -33,10 +31,23 @@ for k = 1:length(partition_centers)-1
       new_partition_centers =  [new_partition_centers,partition_centers(k+1)];
     end
 end
+%% Visualize NMI in low-D space
+xy = cmdscale(NMI_dist,3);
+
+figure;hold on;
+scatter3(xy(:,1),xy(:,2),xy(:,3),20,stats.kdenth*100,'filled');alpha(0.5);colormap(jet);c = colorbar('FontSize',15);
+c.Label.String = 'edge density';
+h = scatter3(xy(new_partition_centers,1),xy(new_partition_centers,2),xy(new_partition_centers,3),100,'k','p','filled');alpha(0.8);
+grid on
+title('solution landscape')
+set(gca,'YTickLabel',[],'XTickLabel',[],'ZTickLabel',[]);
+legend(h,'solution centers','location','SW');legend('boxoff');
+view(45,25);
+set(gca,'FontSize',15);
 
 %% Consensus procedure for each
 
-[~,idx] = min(NMI_dist(new_partition_centers,:));
+[~,idx] = min(NMI_dist(new_partition_centers,:)); % assign to the closest center
 
 for k = unique(idx)
     Cons.Consensus(:,k) = mode(stats.SortClus(:,idx==k),2);

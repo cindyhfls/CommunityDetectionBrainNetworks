@@ -128,12 +128,24 @@ for j=1:Nkden
             kdenth(j)=sum(rmat(UDidx)~=0)/NPE;
             rth(j)=min(rmat(UDidx));
         case 'kden'
+%             EL=ceil(th(j)*NPE);
+%             rmat=triu(rmat,1);
+%             [v,idx]=sort(rmat(:),'descend');  % It seems that the
+% %             original sorting takes all edges not just the upper triangle?
+%             v((EL+1):length(UDidx))=0;
+%             rmat(idx)=v;
+%             rmat=max(rmat,rmat');
+%             rth(j)=v(EL);
+%             kdenth(j)=EL/NPE;
+
             EL=ceil(th(j)*NPE);
-            rmat=triu(rmat,1);
-            [v,idx]=sort(rmat(:),'descend'); 
+            rmat = triu(rmat,1);
+            vals = rmat(UDidx);
+            [v,idx]=sort(vals,'descend');
             v((EL+1):length(UDidx))=0;
-            rmat(idx)=v;
-            rmat=max(rmat,rmat');
+            vals(idx) = v;
+            rmat(UDidx) = vals;
+            rmat = rmat+rmat';
             rth(j)=v(EL);
             kdenth(j)=EL/NPE;
         case 'mst'
