@@ -7,7 +7,7 @@ clear;close all;clc;
 % filename = './Results/washu120/Gordon/230531/Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Results/washu120/Gordon/230531/Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/BCP_Dec_N177/eLABE_Y2_prelim_05062023/230616/Infomap_BCP_Dec_N177_low0.001_step0.001_high0.100_xdist20.mat'
-filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/230915/Infomap_WashU120_low0.006_step0.003_high0.150_xdist0.mat';
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/230915/Infomap_WashU120_low0.006_step0.003_high0.150_xdist0.mat';
 load(filename)
 % stats = stats{1}; % at sometime in 202205 I changed the Infomap stats results to a cell format so I can save multiple results
 params = stats.params
@@ -64,9 +64,9 @@ partition_centers =find(islocalmin(stats.avgVersatility,'FlatSelection','first')
 % uses normalized mutual information across thresholds specified in params
 
 % Adam's original method (finding stable neighboring threshold with at least x consecutive)
-% [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,[],4); % this is Adam's original workflow to find stable groups with high NMI in the neighboring thresholds, I will update that with a different function
+[Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,[],3); % this is Adam's original workflow to find stable groups with high NMI in the neighboring thresholds, I will update that with a different function
 % Updated to calculate pairwise NMI
-[Cons,stats] = Find_Stable_Levels_HSB(stats,partition_centers); % consensus by finding stable levels from the 
+% [Cons,stats] = Find_Stable_Levels_HSB(stats,partition_centers); % consensus by finding stable levels from the 
 
 Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus and plot the figure
 % stats.SortedStats = Matrix_metrics_HSB(stats.SortClus,stats.MuMat,stats.rth,stats.params.binary,stats.params.type,stats.kdenth);
@@ -80,7 +80,8 @@ clear MNIl MNIr
 
 %%
 nameoption = 3
-[foo, CWro,Cons] = assign_network_colors(Cons,nameoption) % currently using Gordon 13 network colors as default
+[CWro,Cons] = assign_network_colors(Cons,nameoption) % currently using Gordon 13 network colors as default
+foo=Cons.SortConsRO;
 %% Visualize Networks-on-brain and Consensus Edge Density Matrix
 Explore_ROI_kden_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
 
@@ -88,14 +89,15 @@ Explore_ROI_kden_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
 parcel_name ='Gordon'% params.parcel_name
 load(['Parcels_',parcel_name,'.mat'],'Parcels');
 figure('position',[100 100 400 300]);
+
 for i = 1:size(foo,2)
     key = foo(:,i);
     plot_network_assignment_parcel_key(Parcels, key,CWro.cMap,CWro.Nets)  
   text(0.72,0,sprintf('Avg density = %2.2f%%',Cons.epochs.mean_kden(i)*100),'Units','Normalized')
 %     plot_network_assignment_parcel_key(Parcels, key,CWro.cMap,CWro.Nets)
 %     text(0.1,1.5,sprintf('Avg density = %2.2f%%',Cons.epochs.mean_kden(i)*100),'Units','Normalized')
-%     print([params. outputdir,'/Consensus_Model_',num2str(i)],'-dpng')
-    pause;
+    print([params. outputdir,'/Consensus_Model_',num2str(i)],'-dpng')
+%     pause;
     clf
 end
 %% Generate Infomap (IM) Structure for Viable Edge Density Ranges
