@@ -1,6 +1,6 @@
 # Infomap_MATLAB_wrapper for community detection in neuroimaging data
 
-This package is currently under development and testing. It is an upgrade from the GraphTools https://www.nitrc.org/projects/graphtools/, with an attempt to make community detection of brain networks more principled and data-driven, especially in optimizing for the scale (number of communities).
+This package is currently under development and testing. The initial commit is done by Dr. Adam Eggebrecht and is an upgrade from the GraphTools https://www.nitrc.org/projects/graphtools/, with an attempt to make community detection of brain networks more principled and data-driven, especially in optimizing for the scale (number of communities).
 
 It takes a sparsely thresholded Nroi x Nroi structural/functional connectivity matrix and find the community structure using infomap community detection (mapequation.org).
 Then it calculates the stability of solutions across algorithm initation, and across different resolution scale (by varying the threshold to the graph). 
