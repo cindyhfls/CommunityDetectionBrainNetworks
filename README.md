@@ -19,9 +19,9 @@ Additional goals include to correct for some bugs in the program and introduce t
 ## Notes:
 1. Code from other toolbox (External Functions):
    - infomap (mapequation.org) version 0.x 
-   - BCT toolbox (2019_03_03_BCT version) download from https://sites.google.com/site/bctnet/ 
-   - Faskowitz2018wsbmLifeSpan https://github.com/faskowit/Faskowitz2018wsbmLifeSpan/tree/master
-   - NetworkCommunityToolbox
+   - BCT toolbox (2019_03_03_BCT version) download from (https://sites.google.com/site/bctnet/) 
+   - Faskowitz2018wsbmLifeSpan(https://github.com/faskowit/Faskowitz2018wsbmLifeSpan/tree/master)
+   - NetworkCommunityToolbox(http://commdetect.weebly.com/)
 2. Currently support parcel-based/ROI-based input (Nroi x Nroi).
 3. Full support for vertex-based and voxel-based input in progress.
 
