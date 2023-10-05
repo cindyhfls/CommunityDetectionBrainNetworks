@@ -133,10 +133,10 @@ end
 Nc=size(stats.epochs,1);
 for j=1:Nc
     foo=stats.clusters(:,(stats.epochs(j,1)):stats.epochs(j,2));
-    foo(foo==0) = NaN;% update 2023.09.28 JCT to ignore isolated assignments and use the solutions with an assignment
-    tmp = mode(foo');tmp(isnan(tmp)) = 0;
-    stats.Consensus(:,j) = tmp;
-%     stats.Consensus(:,j)=mode(foo');
+%     foo(foo==0) = NaN;% update 2023.09.28 JCT to ignore isolated assignments and use the solutions with an assignment
+%     tmp = mode(foo');tmp(isnan(tmp)) = 0;
+%     stats.Consensus(:,j) = tmp;
+    stats.Consensus(:,j)=mode(foo');
 end
 
 

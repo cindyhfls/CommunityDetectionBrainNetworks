@@ -21,15 +21,12 @@ if ~exist('killTH','var')
     end
 end
 
-
-%% Set grouping value == 0 if less than threshold membership
-matIN = remove_singleton(matIN,killTH);
-
 %% Hungarian Matching
 for j = 2:size(matIN ,2)
     matIN (:,j) = pair_labeling(matIN (:,j-1),matIN (:,j));
 end
 matOUT = matIN;
+matOUT = remove_singleton(matOUT,killTH);
 %% Initialize (removed)
 % maxclr=max(matIN(:));
 % matKey=matIN;

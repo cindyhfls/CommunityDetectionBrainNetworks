@@ -54,7 +54,7 @@ switch nameoption
             ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
             colortemplate.IM = make_template_from_parcel(Parcels,ParcelCommunities);
         end
-        [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,colortemplate,0.1,'dice');
+        [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,colortemplate,0.1,'dice');%'dice'
 end
 
 %% Re-Order Networks (vis,DMN,Mot,DAN,FPC,...)

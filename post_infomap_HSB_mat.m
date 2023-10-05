@@ -66,7 +66,7 @@ partition_centers =find(islocalmin(stats.avgVersatility,'FlatSelection','first')
 % Adam's original method (finding stable neighboring threshold with at least x consecutive)
 [Cons,stats]=Org_Cons_Org_IMap_Matrix_HSB(stats,[],3); % this is Adam's original workflow to find stable groups with high NMI in the neighboring thresholds, I will update that with a different function
 % Updated to calculate pairwise NMI
-% [Cons,stats] = Find_Stable_Levels_HSB(stats,partition_centers); % consensus by finding stable levels from the 
+[Cons,stats] = Find_Stable_Levels_HSB(stats,partition_centers); % consensus by finding stable levels from the 
 
 Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus and plot the figure
 % stats.SortedStats = Matrix_metrics_HSB(stats.SortClus,stats.MuMat,stats.rth,stats.params.binary,stats.params.type,stats.kdenth);

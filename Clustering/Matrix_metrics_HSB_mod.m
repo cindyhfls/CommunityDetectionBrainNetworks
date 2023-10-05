@@ -96,13 +96,6 @@ for j=1:Nkden
     metrics.Cdns(j)=sum(R(:))/(Nroi*Nroi); % Connectedness
     
     M = ones(max(clusters));M = M-diag(diag(M));
-    %     M = ones(max(clusters));noneidx = find(unique(clusters)==0);
-    %     M(noneidx,:) = 0; M(:,noneidx) = 0;M = M-diag(diag(M));
-    %     if isempty(noneidx)
-    %         keepnets = true(size(clusters));
-    %     else
-    %         keepnets = clusters~=noneidx;
-    %     end
     keepnets = clusters~=0;
     D = calc_correlationdist(rmat0);
     

@@ -107,6 +107,17 @@ params.writepathbase=[params.writepathbase,GCtempFname,'/'];
 cd(params.writepathbase) 
 writepath=params.writepathbase;
 
+%% Distance exclusion
+if isfield(params,'dmat')
+    dmat=params.dmat>params.xdist;
+    rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
+    clear dmat
+else 
+    dmat=pdist2(params.roi,params.roi)>params.xdist;
+    rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
+    clear dmat
+end
+
 %% Calc mean matrix across subjects
 rmat0=rmat.*(~eye(Nroi)); % remove diagonal correlation
 
@@ -121,6 +132,7 @@ for j=1:Nkden
     tic
     rmat=rmat0;    
     
+
     % threshold matrix
     switch params.type
         case 'r'
@@ -161,17 +173,7 @@ for j=1:Nkden
             end
             kdenth(j) = nnz(rmat)/2/NPE;
     end
-    
-    % Distance exclusion
-    if isfield(params,'dmat')
-        dmat=params.dmat>params.xdist;
-        rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
-        clear dmat
-    else params.xdist
-        dmat=pdist2(params.roi,params.roi)>params.xdist;
-        rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
-        clear dmat
-    end
+  
 
     % binarize matrix
     if params.binary, rmat=single(rmat>0); end
