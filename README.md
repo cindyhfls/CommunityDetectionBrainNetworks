@@ -1,9 +1,9 @@
 # Infomap_MATLAB_wrapper for community detection in neuroimaging data
 
 ## Introduction and motivation
-This package is currently under development and testing. The initial commit is done by Dr. Adam Eggebrecht and is an upgrade from the GraphTools https://www.nitrc.org/projects/graphtools/, with an attempt to make community detection of brain networks more principled and data-driven, especially in optimizing for the scale (number of communities).
+This package is currently under development and testing. The initial commit is done by Dr. Adam Eggebrecht and is an upgrade from the [GraphTools] (https://www.nitrc.org/projects/graphtools/), with an attempt to make community detection of brain networks more principled and data-driven, especially in optimizing for the scale (number of communities).
 
-It takes a sparsely thresholded Nroi x Nroi structural/functional connectivity matrix and find the community structure using infomap community detection (mapequation.org).
+It takes a sparsely thresholded Nroi x Nroi structural/functional connectivity matrix and find the community structure using infomap community detection (Rosvall & Bergstrom 2008 PNAS).
 Then it calculates the stability of solutions across algorithm initation, and across different resolution scale (by varying the threshold to the graph). 
 
 It is based on multiple lines of evidence which suggest a hierarchical organization in the brain while the original applications (e.g. Power 2011 Neuron) aimed to find a consensus across scales. I plan to determine the final communities in brain structural/functional connectivity data based on the assumption that at an optimal scale, 1) a given community detection algorithm is able to produce similar solution with each random initation, 2) the solution is similar across subsamples/bootstrapped samples of the input data, 3) the solution is similar across different subsamples/bootstraped samples of the input data, 4) clustering measures, such as silhouette index is relatively high, 5) the neighboring scales produce similar solutions and the transition is sharp across different hierarchies, 6) convergent evidence can be found from different community detection algorithm
@@ -18,7 +18,7 @@ Additional goals include to correct for some bugs in the program and introduce t
 
 ## Notes:
 1. Code from other toolbox (External Functions):
-   - [infomap version 0.x](mapequation.org) 
+   - [infomap version 0.x](https://www.mapequation.org/)) 
    - [cifti-matlab](https://github.com/Washington-University/cifti-matlab)
    - [BCT toolbox 2019_03_03_BCT version](https://sites.google.com/site/bctnet/) 
    - [Faskowitz2018wsbmLifeSpan](https://github.com/faskowit/Faskowitz2018wsbmLifeSpan/tree/master)
