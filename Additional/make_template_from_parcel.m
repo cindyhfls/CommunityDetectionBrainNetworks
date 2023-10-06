@@ -15,20 +15,32 @@ for i = setdiff(unique(Parcels.cdata),0)'
 end
 
 %%
-idx = arrayfun(@(i)find([ParcelCommunities.diminfo{2}.maps.table.key]==i),unique(net_id)');
+idx = 2:size(ParcelCommunities.diminfo{2}.maps.table,2);
 tbl = ParcelCommunities.diminfo{2}.maps.table(idx);
 clear IM
 IM.name=['IM_temp'];
 cMap = arrayfun(@(i)tbl(i).rgba(1:3)',1:size(tbl,2),'UniformOutput',false);
 cMap = cell2mat(cMap');
-% cMap = Plot.linspecer(length(unique(net_id)));
 IM.cMap=cMap;
 IM.Nets = string({tbl(:).name})';
-% IM.Nets= string(1:size(cMap,1))';
-% IM.ROIxyz=ROIxyz;
 Nroi = length(net_id);
-IM.key=[[1:Nroi]',zeros(Nroi,1)];
-[IM.key(:,2),IM.order]=sort(IM_Remove_Naming_Gaps_HSB(net_id));
-% IM.ROIxyz=IM.ROIxyz(IM.order,:);
-% IM=Org_IM_DVLR_HSB(IM);
+IM.key=[[1:Nroi]',net_id];
+IM.order = 1:Nroi;
+%%
+% idx = arrayfun(@(i)find([ParcelCommunities.diminfo{2}.maps.table.key]==i),unique(net_id)');
+% tbl = ParcelCommunities.diminfo{2}.maps.table(idx);
+% clear IM
+% IM.name=['IM_temp'];
+% cMap = arrayfun(@(i)tbl(i).rgba(1:3)',1:size(tbl,2),'UniformOutput',false);
+% cMap = cell2mat(cMap');
+% % cMap = Plot.linspecer(length(unique(net_id)));
+% IM.cMap=cMap;
+% IM.Nets = string({tbl(:).name})';
+% % IM.Nets= string(1:size(cMap,1))';
+% % IM.ROIxyz=ROIxyz;
+% Nroi = length(net_id);
+% IM.key=[[1:Nroi]',zeros(Nroi,1)];
+% [IM.key(:,2),IM.order]=sort(IM_Remove_Naming_Gaps_HSB(net_id));
+% % IM.ROIxyz=IM.ROIxyz(IM.order,:);
+% % IM=Org_IM_DVLR_HSB(IM);
 end

@@ -110,7 +110,7 @@ end
 if strcmp(stats.params.format,'mat')
     stats.MuMat = smartload(stats.params.zmatfile); %(parcel-wise data in .mat)
 elseif strcmp(stats.params.format,'cifti')
-    tmp = ft_read_cifti_mod(stats.params.zmatfile);stats.MuMat = tmp.data; %(vertex-wise datain cifti format)
+    tmp = cifti_read(stats.params.zmatfile);stats.MuMat = tmp.cdata; %(vertex-wise datain cifti format)
 end
 
 toIM=[1:size(Cons.SortCons,2)];

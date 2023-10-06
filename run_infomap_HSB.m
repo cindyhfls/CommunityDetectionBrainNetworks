@@ -36,8 +36,8 @@ switch params.format
         params.roi = ROIxyz([Util.with_without_mw_conversion('Lindfull');Util.with_without_mw_conversion('Rindfull')],:);
         clear ROIxyz lROI rROI;
         % Get the FC matrix
-        zmat =ft_read_cifti_mod(zmatfile);
-        zmat = zmat.data;
+        zmat =cifti_read(zmatfile);
+        zmat = zmat.cdata;
         clear data;
     case 'mat'
         load(['./Parcels/Parcels_',parcel_name,'.mat'],'parcels_dmat','ROIxyz');

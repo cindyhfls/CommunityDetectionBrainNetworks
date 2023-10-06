@@ -45,16 +45,25 @@ switch nameoption
         end
         % and then manually update the classification in Util.makeCW
         
-    case 3 % name according to template
-        %%
-        if contains(templatepath,'.mat')
+    case 3 % name according to a given template
+        if isstruct(templatepath) % e.g. colortemplate.IM
+            colortemplate = templatepath;
+            [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,colortemplate,0.1,'dice');%'dice'
+        elseif contains(templatepath,'.mat') % e.g. load IM structure
             colortemplate =load(templatepath);
-        elseif contains(templatepath,'.nii')
+            [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,colortemplate,0.1,'dice');%'dice'
+        elseif contains(templatepath,'.nii') % e.g. load cifti file
             Parcels = cifti_read(parcelpath);
             ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
-            colortemplate.IM = make_template_from_parcel(Parcels,ParcelCommunities);
+            newCons.SortCons = zeros(length(Parcels.cdata),size(Cons.SortCons,2));
+            for j = 1:size(Cons.SortCons,2)
+                for i = 1:max(Cons.SortCons(:,j))
+                     newCons.SortCons(any(Parcels.cdata==find(Cons.SortCons(:,j)==i)',2),j) = i;
+                end
+            end
+            [CW,GenOrder,MIn] =assign_Infomap_networks_by_template_cifti(newCons,ParcelCommunities,0.1,'dice');%'dice'
         end
-        [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,colortemplate,0.1,'dice');%'dice'
+        
 end
 
 %% Re-Order Networks (vis,DMN,Mot,DAN,FPC,...)
