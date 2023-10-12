@@ -16,7 +16,8 @@ switch nameoption
         % % Option 1. % %
         % Auto name 1-#ROI and color based on Jet color lookup table
         AutoName=1;
-        CW.cMap = linspecer(Nnets-1);
+%         CW.cMap = linspecer(Nnets-1);
+        CW.cMap = distinguishable_colors(Nnets-1);
         CW.Nets=cell(Nnets-1,1);
         for j=1:Nnets    
             if j<10
@@ -33,7 +34,6 @@ switch nameoption
         
         % Look at ROIs on cortical surface and take screen shot; press space to advance to next network
         % screen shot networks and save (e.g. to ppt) for labeling
-        AutoName=0;
         close all;
         for j=1:Nnets
             Vis_IM_ROI_Module_HSB(Cons.SortCons,stats,Anat,j,Nroi);
@@ -63,7 +63,8 @@ switch nameoption
             end
             [CW,GenOrder,MIn] =assign_Infomap_networks_by_template_cifti(newCons,ParcelCommunities,0.1,'dice');%'dice'
         end
-        
+    case 4
+         [CW,GenOrder] = makeCW(params,Nnets);
 end
 
 %% Re-Order Networks (vis,DMN,Mot,DAN,FPC,...)
@@ -74,3 +75,10 @@ foo=Cons.SortCons;foo(foo==0)=NaN;
 Cons.SortConsRO=Cons.SortCons;
 for j=1:length(GenOrder),Cons.SortConsRO(foo==GenOrder(j))=j;end
 % foo=Cons.SortConsRO;
+%% Check the colormaps are fine
+figure;
+imagesc;colormap(CWro.cMap);
+colorbar;
+title(sprintf('N = %i',size(CWro.cMap,1)))
+pause(1);
+close all;

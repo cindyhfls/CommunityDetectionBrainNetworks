@@ -1,5 +1,6 @@
 function [CW,GenOrder,MIn] = assign_Infomap_networks_by_template_cifti(Cons,template_cifti,template_match_threshold,template_match_method)
 % this function takes a template and make that match to the infomap result
+% assumes the input cifti is a dlabel file with labels
 Nets=setdiff(unique(Cons.SortCons(:)),0);
 Nnets=length(Nets);
 NetNames = {template_cifti.diminfo{2}.maps.table(2:end).name}';

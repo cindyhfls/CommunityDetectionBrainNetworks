@@ -7,7 +7,15 @@ clear;close all;clc;
 % filename = './Results/washu120/Gordon/230531/Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Results/washu120/Gordon/230531/Infomap_washu120_low0.001_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/BCP_Dec_N177/eLABE_Y2_prelim_05062023/230616/Infomap_BCP_Dec_N177_low0.001_step0.001_high0.100_xdist20.mat'
-% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/230915/Infomap_WashU120_low0.006_step0.003_high0.150_xdist0.mat';
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/230904/Infomap_WashU120_low0.006_step0.003_high0.150_xdist20.mat';
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/2310904/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.100_xdist20.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230927/Infomap_eLABE_Y2_N113_low0.001_step0.001_high0.100_xdist20.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230929/Infomap_eLABE_Y2_N113_low0.009_step0.001_high0.100_xdist0.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231011/Infomap_WashU120_low0.010_step0.001_high0.300_xdist20.mat';
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/231011/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.300_xdist20.mat'
+filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231011/Infomap_WashU120_low0.010_step0.001_high0.300_xdist20.mat';
+
+
 load(filename)
 % stats = stats{1}; % at sometime in 202205 I changed the Infomap stats results to a cell format so I can save multiple results
 params = stats.params
@@ -21,6 +29,96 @@ if ~isfield(stats,'MuMat')||isempty(stats.MuMat)
 end
 % figdir = fullfile('./Figures',params.IMap_fn);
 
+%% Sort all densities and plot video
+minsize = 5;
+nameoption = 3;% 1: automatic, 3: using template
+stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize);
+newstats.SortCons = stats.SortClus;
+% templatepath  = 'Laumann2015_12Networks.dlabel.nii'
+% parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
+
+[newCWro,newstats] = assign_network_colors(newstats,nameoption); % currently using Gordon 13 network colors as default
+% [newCWro,newstats] = assign_network_colors(newstats,3,templatepath,parcelpath)
+
+
+parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
+load(['Parcels_',parcel_name,'.mat'],'Parcels');
+%% Make video
+Make_parcel_kden_Video(newstats.SortConsRO,newCWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'video'))
+%% Visualize Networks-on-brain and Consensus Edge Density Matrix
+% Explore_ROI_kden_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
+Explore_parcel_kden_HSB(newstats.SortConsRO,newCWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'));
+%% Simple consensus
+minsize =5;
+lowestcol = find(abs(stats.kdenth-single(0.01))<10E-5);
+highestscol =find(abs(stats.kdenth-single(0.10))<10E-5)%size(stats.clusters,2);
+consensusmap = Consensus_infomap_simple_CT_mod(stats.SortClus,lowestcol,minsize);
+
+Cons.SortCons = consensusmap;
+templatepath = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Templates/Tu_eLABE_Y2_22Networks.nii';%Laumann2015_12Networks.dlabel.nii'
+parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
+% parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
+[CWro,Cons] = assign_network_colors(Cons,3,templatepath,parcelpath) % currently using Gordon 13 network colors as default
+
+% [CWro,Cons] = assign_network_colors(Cons,3) % currently using Gordon 13 network colors as default
+pause(0.1);close all
+foo = Cons.SortConsRO;
+
+parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
+load(['Parcels_',parcel_name,'.mat'],'Parcels');
+figure('position',[100 100 400 300]);
+for i = 1:size(Cons.SortConsRO,2) 
+    key =Cons.SortConsRO(:,i);
+    plot_network_assignment_parcel_key(Parcels, key,[],CWro.Nets,0)  
+    text(0.72,0,'simple consensus','Units','Normalized')
+%     print([params.outputdir,'/Consensus_Model_SimpleConsensus'],'-dpng')
+%     pause;
+%     clf
+end
+
+cMap=CWro.cMap;
+Nets=CWro.Nets;
+
+temp = Cons.SortConsRO;
+if any(temp==0)
+    temp(temp==0)=size(cMap,1)+1; % Unspecified network became the last network
+    cMap=cat(1,cMap,[0.25,0.25,0.25]);% gray for USp
+    %             cMap = cat(1,cMap,[1,1,0.8]); % a very light yellow for USp
+    Nets=cat(1,Nets,'None');
+end
+keep=unique(temp)';
+
+% Put together IM structure
+clear IM
+IM.name=['IM_',params.IMap_fn,'_Consesus_model_simple'];
+IM.cMap=cMap(keep,:);
+IM.Nets=Nets(keep);
+IM.ROIxyz=params.roi;
+IM.key=[[1:Nroi]',zeros(Nroi,1)];
+[IM.key(:,2),IM.order]=sort(IM_Remove_Naming_Gaps_HSB(temp));
+IM.ROIxyz=IM.ROIxyz(IM.order,:);
+IM=Org_IM_DVLR_HSB(IM);
+
+% Visualize
+figure;
+noneidx = find((string(IM.Nets)=="None")|(string(IM.Nets)=="USp"));
+if ~isempty(noneidx)
+    keepnets =IM.key(:,2)~=noneidx;
+else
+    keepnets = true(size(IM.key(:,2)));
+end
+M = ones(max(IM.key(:,2)));M(noneidx,:) = 0; M(:,noneidx) = 0;M = M-diag(diag(M));
+zmat = stats.MuMat(IM.order,IM.order);
+Matrix_Org3(zmat(keepnets,keepnets),...
+    IM.key(keepnets,:),10,[-0.6,0.6],IM.cMap,0);
+
+% Matrix_Org3_HSB(stats.MuMat(IM.order,IM.order),IM.key,10,[-0.6,0.6],IM.cMap,0);
+% title(sprintf('%s, %i Networks',[strrep(IM.name,'_',' ')],length(IM.Nets)),'Color','w');
+
+D = calc_correlationdist(stats.MuMat(IM.order,IM.order));
+s = silhouette_mod(IM.key(keepnets,2),D(keepnets,keepnets),M);
+text(0.3,-0.05,sprintf('avg SI = %2.3f',mean(s)),'Units','normalized','FontWeight','Bold');
+% print(fullfile(params.outputdir,'Heatmap_SimpleConsensus.png'),'-dpng')
 %% plot the versatility
 if params.repeats_consensus
     figure('position',[100 100 800 400]);
@@ -82,8 +180,6 @@ clear MNIl MNIr
 nameoption = 3
 [CWro,Cons] = assign_network_colors(Cons,nameoption) % currently using Gordon 13 network colors as default
 foo=Cons.SortConsRO;
-%% Visualize Networks-on-brain and Consensus Edge Density Matrix
-Explore_ROI_kden_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
 
 %% (Alternatively) Visualize the parcels
 parcel_name ='Gordon'% params.parcel_name

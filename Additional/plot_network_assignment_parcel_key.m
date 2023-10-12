@@ -11,7 +11,8 @@ else
     nNet = length(setdiff(unique(key),[0]));
 end
 if ~exist('cmap','var')||isempty(cmap)
-    cmap = linspecer(nNet);
+%     cmap = linspecer(nNet);
+    cmap = distinguishable_colors(nNet);
 end
 %% find network assignments for each ROI
 [Parcel_Nets.CtxL,Parcel_Nets.CtxR] = deal(NaN(size(Parcels.CtxL)));
