@@ -1,4 +1,4 @@
-function [clrs] =  regularize(clrs,varargin)
+function [clrs] =  regularize_HSB(clrs,varargin)
 %[clrs] =  regularize(clrs,varargin)
 % 
 % This script takes a matrix (typically of clustering assignments) and
@@ -23,6 +23,16 @@ if nnz(ismember(clrs,0))
     disp 'Setting zeros to something else';
     clrs(clrs==0)=maxclr+1;
     maxclr=maxclr+1;
+end
+
+
+reverse = 0;
+if ~isempty(varargin)
+    reverse = varargin{1};
+end
+
+if reverse % flip to sort from highest to lowest threshold
+    clrs = fliplr(clrs);
 end
 
 % zero out the new color matrix and assign its first column
@@ -109,13 +119,20 @@ for i=1:size(vals,1)
     clrs(newclrs==vals(i))=i;
 end
 clrs=single(clrs);
-clrs(clrs <= 1) = 0;
-clrs = clrs -1;
-
-
-
-% set the output file name if provided
-if ~isempty(varargin)
-    outfile=varargin{1,1};
-    dlmwrite(outfile,clrs,'delimiter',' ');
+if any(clrs==0)
+    clrs=clrs-1;
 end
+
+% clrs(clrs <= 1) = 0;
+% clrs = clrs -1;
+
+if reverse % flip back
+    clrs = fliplr(clrs);
+end
+
+
+% % set the output file name if provided
+% if ~isempty(varargin)
+%     outfile=varargin{1,1};
+%     dlmwrite(outfile,clrs,'delimiter',' ');
+% end

@@ -1,6 +1,6 @@
-function [CW,GenOrder,MIn] = assign_Infomap_networks_by_template(Cons,template,template_match_threshold,template_match_method)
+function [CW,GenOrder] = assign_Infomap_networks_by_template(Clust,template,template_match_threshold,template_match_method)
 % this function takes a template and make that match to the infomap result
-Nets=setdiff(unique(Cons.SortCons(:)),0);
+Nets=setdiff(unique(Clust(:)),0);
 Nnets=length(Nets);
 NetNames = template.IM.Nets;
 NetcMap =template.IM.cMap;
@@ -10,104 +10,107 @@ end
 if ~exist('template_match_method','var')||isempty(template_match_method)
     template_match_method = 'dice';
 end
-%%
-%         template = load('IM_13nets_246.mat');
-        %         template = load('IM_246inVol_Talairach_Seitzman2020_14nets(subcortical).mat');
-%         template =load('IM_Gordon_13nets_333Parcels.mat');
-%         template = load('/data/wheelock/data1/parcellations/IM/Kardan_2022_DCN/IM_11_BCP94.mat');
-        [~,sortid] = sort(template.IM.order);
-        templateKey =template.IM.key(sortid,2);
-%         template.IM.key = sortrows(template.IM.key,1);
-        
-        nTemplate = max(templateKey);
-        nCons = size(Cons.SortCons,2);
-        [pct_match,sim_mat] = deal(NaN(nTemplate,Nnets-1,nCons));
-        [VIn,MIn] = deal(NaN(1,nCons));
-        for iCons = 1:nCons
-            tmp = Cons.SortCons(:,iCons);
-            %tmp(tmp==0) = find(tmp==0)+1000; % add a large number so 0 is not a single community
-            idx = tmp~=0 &templateKey~=0;
-            [VIn(iCons), MIn(iCons)] = partition_distance(templateKey(idx), tmp(idx));
-            uniqueMatch = unique(Cons.SortCons(:,iCons));
-            uniqueMatch = setdiff(uniqueMatch,0)';
-            for i = 1:nTemplate
-                for j = uniqueMatch
-                    sim_mat(i,j,iCons) = dice(templateKey==i, Cons.SortCons(:,iCons)==j); % measures how much the overlap between putative network and template
-                    pct_match(i,j,iCons) = mean(templateKey(Cons.SortCons(:,iCons)==j)==i)*100; % measures the percentage division of the nodes in the network belonging to each template
-                end
-            end
-        end
-        %% visualize
-        figure(991);
-        switch template_match_method
-            case 'dice'
-                imagesc(nanmax(sim_mat,[],3));
-                xticks(1:Nnets);
-                yticks(1:nTemplate);
-                yticklabels(NetNames);
-                ytickangle(45);
-                xlabel('tentative networks','interpreter','none');
-                ylabel(template.IM.name,'interpreter','none');
-                colorbar;
-                title('dice coefficient');
-            case 'percentage'
-                imagesc(nanmax(pct_match,[],3));
-                xticks(1:Nnets);
-                yticks(1:nTemplate);
-                yticklabels(NetNames);
-                ytickangle(45);
-                xlabel('tentative networks','interpreter','none');
-                ylabel(template.IM.name,'interpreter','none');
-                colorbar;
-                title('% composition of network');
-        end
-        %% Display Output
-        switch template_match_method
-            case 'dice'
-                %       print report for dice
-                disp('% dice similarity to network');
-                [maxv,maxi] = maxk(nanmax(sim_mat,[],3),3);
-                unclassified = maxv(1,:) < template_match_threshold;
-                for i = 1:length(maxi)
-                    if unclassified(i)
-                        fprintf('Network %i: unclassified, %s = %1.2f , %s = %1.2f , %s = %1.2f ,\n',i,NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
-                    else
-                        fprintf('Network %i: %s, %s = %1.2f , %s = %1.2f , %s = %1.2f ,\n',i,NetNames{maxi(1,i)},NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
-                    end
-                end
-            case 'percentage'
-                disp('% composition of network');
-                [maxv,maxi] = maxk(nanmax(pct_match,[],3),3);
-                unclassified = maxv(1,:) < template_match_threshold;
-                for i = 1:length(maxi)
-                    if unclassified(i)
-                        fprintf('Network %i: unclassified, %s = %2.0f %%, %s = %2.0f %%, %s = %2.0f %%,\n',i,NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
-                    else
-                        fprintf('Network %i: %s, %s = %2.0f %%, %s = %2.0f %%, %s = %2.0f %%,\n',i,NetNames{maxi(1,i)},NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
-                    end
-                end
-        end
-        %% Save to output
-        idx = maxi(1,:);
-        CW.Nets = NetNames(idx);
-        CW.Nets(maxv(1,:)<template_match_threshold) = repelem({'None'},sum(maxv(1,:)<template_match_threshold),1);
+%% Merge the ones with high overlap (sometimes they exist because breaks in the assignment?)
+G1=setdiff(unique(Clust(:)),0);
+for j=1:length(G1)
+    [G1(j,2),G1(j,3)]=max(sum(Clust==G1(j,1)));
+end
+repnets = cell2mat(arrayfun(@(ii)Clust(:,G1(ii,3))==G1(ii,1),G1(:,1),'UniformOutput',false)');
+%% Find the  overlap for each network
+Nnets = size(repnets,2)
+[~,sortid] = sort(template.IM.order);
+templateKey =template.IM.key(sortid,2);
+nTemplate = max(templateKey);
+[pct_match,sim_mat] = deal(NaN(nTemplate,Nnets));
 
-        CW.cMap = NetcMap(idx,:);
-        CW.cMap(maxv(1,:)<template_match_threshold,:) = 0.5;
-        
-        uniqueNets = setdiff(unique(CW.Nets),{'None','USp'});
-        
-        for i = 1:length(uniqueNets)
-            matchnet = find(string(CW.Nets)==uniqueNets{i});
-            if length(matchnet)>1
-                for k = 2:length(matchnet)
-                    CW.Nets{matchnet(k)}=[CW.Nets{matchnet(k)},num2str(k)];
-                    CW.cMap(matchnet(k),:) = change_rgb_color(CW.cMap(matchnet(k-1),:));
-                end
+for j = 1:Nnets
+    for i = 1:nTemplate
+        sim_mat(i,j) = dice((templateKey==i),repnets(:,j));
+        pct_match(i,j) = mean(templateKey(repnets(:,j))==i)*100;
+    end
+end
+
+%% visualize
+figure(991);
+switch template_match_method
+    case 'dice'
+        imagesc(nanmax(sim_mat,[],3));
+        xticks(1:Nnets);
+        yticks(1:nTemplate);
+        yticklabels(NetNames);
+        ytickangle(45);
+        xlabel('tentative networks','interpreter','none');
+        ylabel(template.IM.name,'interpreter','none');
+        colorbar;
+        title('dice coefficient');
+    case 'percentage'
+        imagesc(nanmax(pct_match,[],3));
+        xticks(1:Nnets);
+        yticks(1:nTemplate);
+        yticklabels(NetNames);
+        ytickangle(45);
+        xlabel('tentative networks','interpreter','none');
+        ylabel(template.IM.name,'interpreter','none');
+        colorbar;
+        title('% composition of network');
+end
+%% Display Output
+switch template_match_method
+    case 'dice'
+        %       print report for dice
+        disp('% dice similarity to network');
+        [maxv,maxi] = maxk(nanmax(sim_mat,[],3),3);
+        unclassified = maxv(1,:) < template_match_threshold;
+        for i = 1:length(maxi)
+            if unclassified(i)
+                fprintf('Network %i: unclassified, %s = %1.2f , %s = %1.2f , %s = %1.2f ,\n',i,NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
+            else
+                fprintf('Network %i: %s, %s = %1.2f , %s = %1.2f , %s = %1.2f ,\n',i,NetNames{maxi(1,i)},NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
             end
         end
-        
-        idxwithnone = idx;idxwithnone(any(string(CW.Nets)==["None","USp"],2))= Inf;
-        [~,GenOrder] = sort(idxwithnone);
-   
+    case 'percentage'
+        disp('% composition of network');
+        [maxv,maxi] = maxk(nanmax(pct_match,[],3),3);
+        unclassified = maxv(1,:) < template_match_threshold;
+        for i = 1:length(maxi)
+            if unclassified(i)
+                fprintf('Network %i: unclassified, %s = %2.0f %%, %s = %2.0f %%, %s = %2.0f %%,\n',i,NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
+            else
+                fprintf('Network %i: %s, %s = %2.0f %%, %s = %2.0f %%, %s = %2.0f %%,\n',i,NetNames{maxi(1,i)},NetNames{maxi(1,i)},maxv(1,i),NetNames{maxi(2,i)},maxv(2,i),NetNames{maxi(3,i)},maxv(3,i));
+            end
+        end
+end
+%% Save to output
+idx = maxi(1,:);
+CW.Nets =NetNames(idx);
+CW.Nets(maxv(1,:)<template_match_threshold) = repelem({'None'},sum(maxv(1,:)<template_match_threshold),1);
+
+CW.cMap = NetcMap(idx,:);
+CW.cMap(maxv(1,:)<template_match_threshold,:) = 0.5;
+
+% uniqueNets = setdiff(unique(CW.Nets),{'None','USp'});
+uniqueNets=unique(CW.Nets);
+validNets = any(string(CW.Nets)==string(uniqueNets)',2);
+n_new_color = sum(validNets)-length(uniqueNets);
+
+new_color = distinguishable_colors(n_new_color,unique(CW.cMap,'rows'));
+
+for i = 1:length(uniqueNets)
+    matchnet = find(string(CW.Nets)==uniqueNets{i});
+    n_colors = length(matchnet);
+    if  n_colors >1
+        core_clr = CW.cMap(matchnet(1),:);
+        d = pdist2(rgb2lab(core_clr),rgb2lab(new_color),'Euclidean');
+        [~,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
+        for k = 2:length(matchnet)
+            CW.Nets{matchnet(k)}=[CW.Nets{matchnet(k)},'_',num2str(k)];
+            CW.cMap(matchnet(k),:) = new_color(minid(k-1),:);%change_rgb_color(CW.cMap(matchnet(k-1),:),CW.cMap);
+        end
+        new_color(minid,:) = [];
+    end
+end
+
+idxwithnone = idx;idxwithnone(any(string(CW.Nets)==["None","USp"],2))= Inf;
+[~,GenOrder] = sort(idxwithnone);
+
 end

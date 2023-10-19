@@ -3,7 +3,10 @@ function Explore_parcel_kden_HSB(ROIclust,Cmap,Parcels,kden,fn)
 % This function generates an interactive display of ROI Sortings for
 % various kden, scanning through the kden chosen.
 global keyPressed
-
+fprintf('Press colormaps to switch thresholds\n, and press q for quit and s for saving figures when the mouse press is outside the colormaps\n')
+if ~exist('fn','var')||isempty(fn)
+    fn = 'tmp';
+end
 %% Set up paramters
 [Nroi,Nkden]=size(ROIclust);
 if any(ROIclust(:)==0)

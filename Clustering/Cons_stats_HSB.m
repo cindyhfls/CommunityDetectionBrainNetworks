@@ -1,7 +1,7 @@
 function Cons = Cons_stats_HSB(Cons,stats)
 %% Stats of consensus models
 Cons.stats=Matrix_metrics_HSB(Cons.SortCons,FisherZ2R_HSB(stats.MuMat),...
-    Cons.epochs.mean_rth,stats.params.binary,stats.params.type,Cons.epochs.mean_kden);
+    Cons.mean_rth,stats.params.binary,stats.params.type,Cons.mean_kdenth);
 
 Ncons=size(Cons.SortCons,2);
 

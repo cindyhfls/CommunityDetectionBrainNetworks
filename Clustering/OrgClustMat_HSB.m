@@ -1,4 +1,4 @@
-function matOUTa=OrgClustMat_HSB(matIN,killTH)
+function matOUTa=OrgClustMat_HSB(matIN,killTH,reverse)
 %
 % This function organizes a matrix representing clustering/sorting
 % assignments. The input matrix rows are ROIs sorted within column. The
@@ -20,89 +20,60 @@ if ~exist('killTH','var')
         killTH=100; % MVW/node cases
     end
 end
-
-%% Hungarian Matching
-for j = 2:size(matIN ,2)
-    matIN (:,j) = pair_labeling(matIN (:,j-1),matIN (:,j));
+if ~exist('reverse','var')
+    reverse =0;
 end
-matOUT = matIN;
-matOUT = remove_singleton(matOUT,killTH);
-%% Initialize (removed)
-% maxclr=max(matIN(:));
-% matKey=matIN;
-% matKey(matKey==junk)=NaN;
-% matOUT=zeros(Nroi,Nkden,'single');
-% matOUT(:,1)=matIN(:,1); % 1st col is key
-%% Cycle through other columns (removed)
-% for j=2:Nkden
-%     key=squeeze(matOUT(:,(j-1)));   % earlier column values
-%     KeyVals=setdiff(unique(key),0); % update 2023.09.28 JCT
-%     Nold=length(KeyVals);
-%     new=squeeze(matKey(:,j));        % to-re-organize column values
-%     NewVals=unique(new(~isnan(new)));% update 2023.09.28 JCT
-%     Nnew=length(NewVals);
-%     
-%     % Make a matrix of # overlaps
-%     ol=zeros(Nold,Nnew,'single');
-%     for l=1:Nold
-%         for k=1:Nnew
-%             ol(l,k)=sum((key==KeyVals(l)).*(new==NewVals(k)));
-%         end
+[matOUT] =  regularize_HSB(matIN,reverse);
+
+% %% Hungarian Matching (somehow this sometimes give completely
+% non-overlapping communities the same index)
+% if reverse
+%     for j = size(matIN,2)-1:-1:1
+%         matIN (:,j) = pair_labeling(matIN (:,j+1),matIN (:,j));
 %     end
-%     
-%     
-%     [olp(:,1),olp(:,2),olp(:,3)]=find(ol); % Get sorted overlaps
-%     cc=sortrows(olp,-3);
-% 
-%     u1=zeros(Nold,1);       % Assign r2 to r1 values when r1 unused
-%     u2=zeros(Nnew,1);
-%     while ~isempty(cc)
-%     
-%      % if both old and new colors in question haven't been assigned
-%         if (u1(cc(1,1))==0 && u2(cc(1,2))==0)
-%             
-%             u1(cc(1,1))=1;  % now they're assigned
-%             u2(cc(1,2))=1;
-%             
-%             % old clrs with this value will be reassigned
-%             exitnum=NewVals(cc(1,2));
-%             % to this value from the newclrs
-%             insertnum=KeyVals(cc(1,1));
-%             % and here they are assigned
-%             matOUT((matKey(:,j)==exitnum),j)=insertnum;
-%             
-%             % this deletes all entries of this oldclr from the unique list
-%             cc=cc(~(cc(:,2)==cc(1,2)),:);
-%     
-%     % if an oldclr can't find parthers in newclrs (the newclr has
-%     % already been given away, probably)
-%         elseif (u1(cc(1,1))==1 && u2(cc(1,2))==0)
-%             
-%             % now this color is used from oldclrs
-%             u2(cc(1,2))=1;
-%             % and we will be replacing oldclrs with this value
-%             exitnum=NewVals(cc(1,2));
-%             % with the highest number possible
-%             matOUT((matKey(:,j)==exitnum),j)=maxclr;
-%             % and then we'll bump the highest number possible up one more
-%             maxclr=maxclr+1;
-%             % and now we'll delete entries of this oldclr from the list
-%             cc=cc(~(cc(:,2)==cc(1,2)),:);
-%         
-%         % the case before this case should take care of all scenarios, but
-%         % this is a catch in case somehow a NewVals didn't find a partner in
-%         % KeyVals, and the oldclr has already been used
-%         elseif (u1(cc(1,1))==0 && u2(cc(1,2))==1)
-%             disp newold! how did i get in here?
-%             cc=cc(~(cc(:,2)==cc(1,2)),:);
-%         end
-%     clear exitnum insertnum;
+% else
+%     for j = 2:size(matIN ,2)
+%         matIN (:,j) = pair_labeling(matIN (:,j-1),matIN (:,j));
 %     end
-%     clear olp
 % end
-% matOUT(~isfinite(matOUT))=0;
+% matOUT = matIN;
 %%
-% now drop all values to the minimum possible
+
+% 1) merge the ones with high overlap but are non-continous
+G1=setdiff(unique(matOUT(:)),0);
+for j=1:length(G1)
+    [G1(j,2),G1(j,3)]=max(sum(matOUT==G1(j,1)));
+end
+repnets = cell2mat(arrayfun(@(ii)matOUT(:,G1(ii,3))==G1(ii,1),[1:length(G1)]','UniformOutput',false)');
+
+% calculate overlap
+ovlp = zeros(size(repnets,2));
+for i = 1:size(repnets,2)
+    for j = i+1:size(repnets,2)
+        ovlp(i,j) = dice(repnets(:,i),repnets(:,j));
+    end
+end
+[idxi,idxj]= find(ovlp>0.8); % arbitrary threshold to say that dice>0.5 are too similar to be considered as two networks
+
+for ii = 1:length(idxi)
+    lowid = min([idxi(ii),idxj(ii)]);
+    highid = max([idxi(ii),idxj(ii)]);
+    if isempty(intersect(find(sum(matOUT==G1(lowid,1))~=0),find(sum(matOUT==G1(highid,1))~=0)))% if they don't appear in the same solutions ever
+        fprintf('Merge network %i and %i\n',G1(lowid,1),G1(highid,1));
+        matOUT(matOUT==G1(highid,1)) = G1(lowid,1); % reassign the higher number to the lower number
+    end
+end
+
+%2) remove networks that only appear in one threshold
+appearance = arrayfun(@(ii)(sum(sum(matOUT==ii)>0)),setdiff(unique(matOUT(:)),0));
+for k = find(appearance==1)'
+    matOUT(matOUT==k) = 0;
+end
+
+% 3) remove networks with lower than killTH number of nodes
+matOUT = remove_singleton(matOUT,killTH);
+
+%% now drop all values to the minimum possible
 vals=unique(matOUT);
 matOUTa=zeros(Nroi,Nkden);
 for j=1:size(vals,1)

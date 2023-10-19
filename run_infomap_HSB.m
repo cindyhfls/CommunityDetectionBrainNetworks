@@ -10,11 +10,11 @@ infomappath =fullfile(path_to_code,'/ExternalFunctions/infomap/Infomap')
 %% set your output directory to save files to
 outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap';
 params.format = 'mat'; % 'mat' or 'cifti' % N.B.: has not tested cifti yet
-% zmatfile = './ExampleData/120_allsubs_corr_Gordon.mat'; % file path for FC
+zmatfile = './ExampleData/120_allsubs_corr_Gordon.mat'; % file path for FC
 % zmatfile = '/data/wheelock/data1/datasets/BCP/December2020/pconns/BCP_Dec2020_N177_parcellation_eLABE_Y2_prelim_05062023_20230616.mat' %'/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_Gordon_20230530.mat'
 datasetname ='WashU120'% 'BCP_Dec_N177'%'eLABE_Y2_N113'; % user note of the data
 parcel_name ='Gordon'% leave empty if params.format = cifti %should match the name in folder ./Parcels/
-zmatfile = '/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_eLABE_Y2_prelim_072023_global_edgethre_0.75_20230921.mat'
+% zmatfile = '/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_eLABE_Y2_prelim_072023_global_edgethre_0.75_20230921.mat'
 
 if strcmp(params.format,'mat')
     outputdir = fullfile(outputdir,'parcel-wise',datasetname,parcel_name,datestr(datetime('now'),'yymmdd'));

@@ -1,4 +1,4 @@
-function  [CIJtree] = backbone_wu(CIJ)
+function  [CIJtree] = backbone_wu_mod(CIJ)
 %BACKBONE_WU        Backbone
 %
 %   [CIJtree,CIJclus] = backbone_wu(CIJ,avgdeg)
@@ -55,7 +55,7 @@ for n=1:N-2
     in = [in jm];                                       %#ok<AGROW>
     out = setdiff(1:N,in);
 
-end;
+end
 
 % now add connections back, with the total number of added connections 
 % determined by the desired 'avgdeg'
