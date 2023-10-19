@@ -123,7 +123,7 @@ rmat0=rmat.*(~eye(Nroi)); % remove diagonal correlation
 
 %% Do clustering
 if strcmp(params.type,'mst')
-            [MST] =backbone_wu_mod(rmat); %N.B.: I modified the BCT backbone function so that it only gets the backbone itself now
+            [MST] =backbone_wu(rmat); %N.B.: I modified the BCT backbone function so that it only gets the backbone itself now
 end
 
 for j=1:Nkden

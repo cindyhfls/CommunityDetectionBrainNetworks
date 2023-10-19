@@ -22,6 +22,32 @@ if strcmp(params.format,'mat')
 elseif strcmp(params.format,'cifti')
     outputdir = fullfile(outputdir,'vertex-wise',datasetname,datestr(datetime('now'),'yymmdd'));
 end
+%% Set parameters for use in Infomap
+params.repeats_consensus = 1;
+params.binary=0;     % Whether or not to Infomap with weights. Default=0;
+params.type = 'mst'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
+if strcmp(params.type,'mst')
+    N = length(zmat);
+    params.lo = 2/N; % use the MST density as minimum (N-1)/(N*(N-1)/2)
+else
+    params.lo=0.010;      % Edge density minimum, typically 1% for ROIs
+end
+params.step=0.001;   % Edge density step, typically 0.001
+params.hi=0.20;      % Edge density maximum, typically 0.1
+params.xdist=0;     % Exclusion distance to minimize PSF shared variance
+params.fig = 0; % plot some figures
+if strcmp(params.format,'mat')
+    params.repeats = 500; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is % Power et al. 2011 used 1000 but I think that's too many
+%     params.killTH = 5; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
+elseif strcmp(params.format,'cifti')
+    params.repeats = 100; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is
+%     params.killTH = 400; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
+end
+tmp = dir(zmatfile);
+params.zmatfile = fullfile(tmp.folder,tmp.name);
+timestr=datestr(datetime('now'),'yymmdd');
+params.IMap_fn=sprintf('Infomap_%s_low%1.3f_step%1.3f_high%1.3f_xdist%i.mat',datasetname,params.lo,params.step,params.hi,params.xdist); % name your output so you know what it is later
+params.outputdir = outputdir;
 %% Load data
 switch params.format
     case 'cifti'
@@ -46,32 +72,6 @@ switch params.format
         params.roi = ROIxyz;   % Coordinates for ROIs, used with exclusion distance
         params.dmat = parcels_dmat;% use geodesic distance
 end
-%% Set parameters for use in Infomap
-params.repeats_consensus = 1;
-params.binary=0;     % Whether or not to Infomap with weights. Default=0;
-params.type = 'mst'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
-if strcmp(params.type,'mst')
-    [MST] =backbone_wu_mod(zmat);
-    params.lo = nnz(MST)/length(zmat)^2; % use the MST density as minimum
-else
-    params.lo=0.001;      % Edge density minimum, typically 1% for ROIs
-end
-params.step=0.0025;   % Edge density step, typically 0.001
-params.hi=0.15;      % Edge density maximum, typically 0.1
-params.xdist=0;     % Exclusion distance to minimize PSF shared variance
-params.fig = 0; % plot some figures
-if strcmp(params.format,'mat')
-    params.repeats = 500; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is % Power et al. 2011 used 1000 but I think that's too many
-%     params.killTH = 5; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
-elseif strcmp(params.format,'cifti')
-    params.repeats = 100; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is
-%     params.killTH = 400; % default parameter for the minimum number of nodes in the final consensus to be considered a network, this can be changed but the default is usually fine for group average data
-end
-tmp = dir(zmatfile);
-params.zmatfile = fullfile(tmp.folder,tmp.name);
-timestr=datestr(datetime('now'),'yymmdd');
-params.IMap_fn=sprintf('Infomap_%s_low%1.3f_step%1.3f_high%1.3f_xdist%i.mat',datasetname,params.lo,params.step,params.hi,params.xdist); % name your output so you know what it is later
-params.outputdir = outputdir;
 
 %% Wrapper to Infomap % %
 
