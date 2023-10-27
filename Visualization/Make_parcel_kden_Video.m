@@ -33,23 +33,23 @@ end
 Anat.CtxL.data=Parcel_Nets.CtxL;
 Anat.CtxR.data=Parcel_Nets.CtxR;
 %% Plot
-subplot(2,4,[1,5],'Position',[.025,0.025,.28,.9])
+subplot('Position',[.025,0.025,.28,.9])
 params.view= 'dorsal';
 params.fig_handle = gca;
 PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
 title(['kden= ',num2str(kden(j),'%0.3f')],'Color','k')
 
-subplot(2,4,[2:3],'Position',[.305,0.505,.44,.45])
+subplot('Position',[.305,0.505,.44,.45])
 params.view='lat';
 params.fig_handle = gca;
 PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
 
-subplot(2,4,[6:7],'Position',[.305,0.005,.44,.45])
+subplot('Position',[.305,0.005,.44,.45])
 params.view='med';
 params.fig_handle = gca;
 PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
 
-subplot(2,4,[4,8],'Position',[.775,0.01,.20,.95])
+subplot('Position',[.775,0.01,.20,.95])
 hold off
 imagesc(sortrows(ROIclust,j));colormap(Cmap);hold on;axis off
 plot([j-.5,j-0.5],[0,size(ROIclust,1)],'k');
@@ -61,5 +61,6 @@ text(j-1,-2,'*','FontSize',20)
 drawnow;
 frame = getframe(f);
 writeVideo(writerObj,frame);
+clf
 end
 close(writerObj);

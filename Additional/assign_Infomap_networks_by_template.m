@@ -110,7 +110,8 @@ for i = 1:length(uniqueNets)
     end
 end
 
-idxwithnone = idx;idxwithnone(any(string(CW.Nets)==["None","USp"],2))= Inf;
+idxwithnone = idx;
+idxwithnone(contains(string(CW.Nets),["None","USp"]))= Inf;
 [~,GenOrder] = sort(idxwithnone);
 
 end

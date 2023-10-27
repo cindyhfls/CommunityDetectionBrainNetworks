@@ -19,12 +19,7 @@ end
 % if zeros are in here, give then a new number (b/c zeros are special for other scripts in graphtools)
 [c d]=size(clrs);
 maxclr=max(max(clrs));
-if nnz(ismember(clrs,0))
-    disp 'Setting zeros to something else';
-    clrs(clrs==0)=maxclr+1;
-    maxclr=maxclr+1;
-end
-
+clrs(clrs==0) =-1;
 
 reverse = 0;
 if ~isempty(varargin)
@@ -119,12 +114,8 @@ for i=1:size(vals,1)
     clrs(newclrs==vals(i))=i;
 end
 clrs=single(clrs);
-if any(clrs==0)
-    clrs=clrs-1;
-end
 
 % clrs(clrs <= 1) = 0;
-% clrs = clrs -1;
 
 if reverse % flip back
     clrs = fliplr(clrs);

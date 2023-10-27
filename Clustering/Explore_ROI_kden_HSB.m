@@ -32,17 +32,17 @@ if isfield(ROI2,'Network'),ROI2=rmfield(ROI2,'Network');end
 ROI2.Network(:,1)=1:size(ROI2.coord,1);
 ROI2.Network(:,2)=ones(size(ROI2.coord,1),1);
 
-subplot(2,4,[1,5],'Position',[.025,0.025,.28,.9])
+subplot('Position',[.025,0.025,.28,.9])
 Anat.view='dorsal';Draw_ROIs_on_Cortex_HSB(Anat,ROI2);
 title(['kden= ',num2str(kden(j),'%0.3f')],'Color','k')
 
-subplot(2,4,[2:3],'Position',[.305,0.505,.44,.45])
+subplot('Position',[.305,0.505,.44,.45])
 Anat.view='lat';Anat.alpha=1;Draw_ROIs_on_Cortex_HSB(Anat,ROI2);
 
-subplot(2,4,[6:7],'Position',[.305,0.005,.44,.45])
+subplot('Position',[.305,0.005,.44,.45])
 Anat.view='med';Anat.alpha=1;Draw_ROIs_on_Cortex_HSB(Anat,ROI2);
 
-subplot(2,4,[4,8],'Position',[.775,0.01,.20,.95])
+subplot('Position',[.775,0.01,.20,.95])
 hold off
 
 % To better appearance, try organizing data a couple of rounds

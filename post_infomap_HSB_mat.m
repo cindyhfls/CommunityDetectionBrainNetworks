@@ -11,10 +11,10 @@ clear;close all;clc;
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/2310904/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230927/Infomap_eLABE_Y2_N113_low0.001_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230904/Infomap_eLABE_Y2_N113_low0.006_step0.001_high0.150_xdist0.mat'
+filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231024/Infomap_WashU120_low0.010_step0.001_high0.030_xdist20.mat';
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/231011/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.300_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231016/Infomap_WashU120_low0.006_step0.001_high0.200_xdist20.mat';
-% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/231012/Infomap_eLABE_Y2_N113_low0.006_step0.001_high0.200_xdist20.mat'
-% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231011/Infomap_WashU120_low0.010_step0.001_high0.300_xdist20.mat';
-filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Tu_342/231016/Infomap_eLABE_Y2_N113_low0.006_step0.001_high0.200_xdist20.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Tu_342/231016/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.200_xdist20.mat'
 % 
 
 load(filename)
@@ -31,21 +31,21 @@ end
 % figdir = fullfile('./Figures',params.IMap_fn);
 
 %% Sort all densities and assign colors
-minsize = 2;
+minsize = 0;
 nameoption = 3;% 1: automatic, 3: using template
-stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize,0); % last argument = 1 for reverse ordering
-templatepath  ='Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
+stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize,1); % last argument = 1 for reverse ordering
+% templatepath  ='Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
 % parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
-parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
+% parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
 % parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
-% [CWro,stats] = assign_network_colors(newstats,1); % currently using Gordon 13 network colors as default
-[CWro,stats] = assign_network_colors(stats,3,templatepath,parcelpath);
+[CWro,stats] = assign_network_colors(stats,1); % currently using Gordon 13 network colors as default
+% [CWro,stats] = assign_network_colors(stats,3,templatepath,parcelpath);
 
 parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
 load(['Parcels_',parcel_name,'.mat'],'Parcels');
 
 %% (optional) Viewing and Manual edit of specific networks
-for iNet =50:68
+for iNet =8:9
     Edit_NetworkColors(stats.SortClusRO,CWro,iNet,Parcels);
 %     pause;
 %     close all;
@@ -59,7 +59,6 @@ end
 % Explore_ROI_kden_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
 Explore_parcel_kden_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'));
 
-
 %% Make video
 Make_parcel_kden_Video(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','')))
 
@@ -68,29 +67,37 @@ Make_parcel_kden_Video(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(
 
 Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus and plot the figure
 
+%% Plot spring-embedded plot?
+stats.MuMat;
+G = graph(thresholded_matrix,'upper');% sometimes the matrix is not symmetric? precision problem?
+Lwidths = 1*G.Edges.Weight/max(G.Edges.Weight)*0.05;
+figure;
+h = plot(G,'ko-','layout','force','UseGravity',true,'NodeCData',stats.SortClusRO(:,1),'NodeColor','flat','MarkerSize',2,'LineWidth',Lwidths);
+colormap(CWro.cMap)
+
 return
 %% Simple consensus
 minsize =5;
-lowestcol = find(abs(stats.kdenth-single(0.01))<10E-5);
-highestscol =find(abs(stats.kdenth-single(0.10))<10E-5)%size(stats.clusters,2);
+lowestcol = 1%find(abs(stats.kdenth-single(0.01))<10E-5);
+highestscol =21%find(abs(stats.kdenth-single(0.10))<10E-5)%size(stats.clusters,2);
+stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize,0); % last argument = 1 for reverse ordering
 consensusmap = Consensus_infomap_simple_CT_mod(stats.SortClus,lowestcol,minsize);
 
-Cons.SortCons = consensusmap;
-templatepath = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Templates/Tu_eLABE_Y2_22Networks.nii';%Laumann2015_12Networks.dlabel.nii'
-parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
+Cons.SortClus = OrgClustMat_HSB(consensusmap ,minsize,0); 
+% templatepath = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Templates/Tu_eLABE_Y2_22Networks.nii';%Laumann2015_12Networks.dlabel.nii'
+% parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
 % parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
-[CWro,Cons] = assign_network_colors(Cons,3,templatepath,parcelpath) % currently using Gordon 13 network colors as default
+[CWro,Cons] = assign_network_colors(Cons,3)%,templatepath,parcelpath) % currently using Gordon 13 network colors as default
 
 % [CWro,Cons] = assign_network_colors(Cons,3) % currently using Gordon 13 network colors as default
 pause(0.1);close all
-foo = Cons.SortConsRO;
 
 parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
 load(['Parcels_',parcel_name,'.mat'],'Parcels');
 figure('position',[100 100 400 300]);
-for i = 1:size(Cons.SortConsRO,2) 
-    key =Cons.SortConsRO(:,i);
-    plot_network_assignment_parcel_key(Parcels, key,[],CWro.Nets,0)  
+for i = 1:size(Cons.SortClusRO,2) 
+    key =Cons.SortClusRO(:,i);
+    plot_network_assignment_parcel_key(Parcels, key,CWro.cMap,CWro.Nets,0)  
     text(0.72,0,'simple consensus','Units','Normalized')
 %     print([params.outputdir,'/Consensus_Model_SimpleConsensus'],'-dpng')
 %     pause;
@@ -100,12 +107,16 @@ end
 cMap=CWro.cMap;
 Nets=CWro.Nets;
 
-temp = Cons.SortConsRO;
+temp = Cons.SortClusRO;
 if any(temp==0)
+    if sum(contains(Nets,{'None','Usp'}))
+        noneidx = find((string(Nets)=="None")|(string(Nets)=="USp"));
+        temp(temp==0) = noneidx;
+    else
     temp(temp==0)=size(cMap,1)+1; % Unspecified network became the last network
     cMap=cat(1,cMap,[0.25,0.25,0.25]);% gray for USp
-    %             cMap = cat(1,cMap,[1,1,0.8]); % a very light yellow for USp
     Nets=cat(1,Nets,'None');
+    end
 end
 keep=unique(temp)';
 

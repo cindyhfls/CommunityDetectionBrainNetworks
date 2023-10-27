@@ -2,6 +2,7 @@
 % in some group of data
 %% Initialization
 clear;clc;close all;
+% path_to_code = '/data/wheelock/data1/people/Muriah/code/NLA/Codes/FinalCode/BrBx-HSB_110418';
 path_to_code = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup' % state the directory for this code
 cd(path_to_code);
 addpath(genpath(path_to_code));
@@ -10,11 +11,13 @@ infomappath =fullfile(path_to_code,'/ExternalFunctions/infomap/Infomap')
 %% set your output directory to save files to
 outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap';
 params.format = 'mat'; % 'mat' or 'cifti' % N.B.: has not tested cifti yet
-zmatfile = './ExampleData/120_allsubs_corr_Gordon.mat'; % file path for FC
+% zmatfile = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/ExampleData/120_allsubs_corr_Gordon.mat'; % file path for FC
+
 % zmatfile = '/data/wheelock/data1/datasets/BCP/December2020/pconns/BCP_Dec2020_N177_parcellation_eLABE_Y2_prelim_05062023_20230616.mat' %'/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_Gordon_20230530.mat'
 datasetname ='WashU120'% 'BCP_Dec_N177'%'eLABE_Y2_N113'; % user note of the data
 parcel_name ='Gordon'% leave empty if params.format = cifti %should match the name in folder ./Parcels/
 % zmatfile = '/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_eLABE_Y2_prelim_072023_global_edgethre_0.75_20230921.mat'
+zmatfile = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/ExampleData/Parcels_LR_avgcorr_120.mat';
 
 if strcmp(params.format,'mat')
     outputdir = fullfile(outputdir,'parcel-wise',datasetname,parcel_name,datestr(datetime('now'),'yymmdd'));
@@ -22,19 +25,22 @@ if strcmp(params.format,'mat')
 elseif strcmp(params.format,'cifti')
     outputdir = fullfile(outputdir,'vertex-wise',datasetname,datestr(datetime('now'),'yymmdd'));
 end
+if ~exist(outputdir,'dir')
+    mkdir(outputdir);
+end
 %% Set parameters for use in Infomap
-params.repeats_consensus = 1;
+params.repeats_consensus = 0;
 params.binary=0;     % Whether or not to Infomap with weights. Default=0;
-params.type = 'mst'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
-if strcmp(params.type,'mst')
+params.type = 'kden'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
+if strcmp(params.type,'mst')  
     N = length(zmat);
     params.lo = 2/N; % use the MST density as minimum (N-1)/(N*(N-1)/2)
 else
     params.lo=0.010;      % Edge density minimum, typically 1% for ROIs
 end
 params.step=0.001;   % Edge density step, typically 0.001
-params.hi=0.20;      % Edge density maximum, typically 0.1
-params.xdist=0;     % Exclusion distance to minimize PSF shared variance
+params.hi=0.03;      % Edge density maximum, typically 0.1
+params.xdist=20;     % Exclusion distance to minimize PSF shared variance
 params.fig = 0; % plot some figures
 if strcmp(params.format,'mat')
     params.repeats = 500; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is % Power et al. 2011 used 1000 but I think that's too many
@@ -67,18 +73,23 @@ switch params.format
         clear data;
     case 'mat'
         load(['./Parcels/Parcels_',parcel_name,'.mat'],'parcels_dmat','ROIxyz');
+        load('Parcels_LR_distances.mat'); parcels_dmat = parcel_distances;% overwrite with the distance matrix that Evan had
+        warning('please remove the line above after testing!');
         zmat = smartload(zmatfile);
         zmat = mean(zmat,3);
         params.roi = ROIxyz;   % Coordinates for ROIs, used with exclusion distance
         params.dmat = parcels_dmat;% use geodesic distance
 end
+%% Use Evan's wrapper
+
+Run_Infomap(zmat, params.dmat, params.xdist, params.lo:params.step:params.hi, params.binary,  params.outputdir, 2,[],500)
+
+return
 
 %% Wrapper to Infomap % %
 
 stats=GraphCluster_HSB(zmat,params); % this can take 10-20 minutes depending on your data/sever specs
-if ~exist(outputdir,'dir')
-    mkdir(outputdir);
-end
+
 
 %% Calculate some stats
 % stats.metrics = Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);

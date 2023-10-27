@@ -64,7 +64,7 @@ if ~isfield(params,'lo'), params.lo=0.01;end % 0.005
 if ~isfield(params,'step'), params.step=0.001;end %0.001
 if ~isfield(params,'hi'), params.hi=0.10;end % 0.25, 0.1
 if ~isfield(params,'xdist'), params.xdist=21;end % was 30, sri used 21
-
+if ~isfield(params,'numworkers'),params.numworkers = 10; end
 if ~isfield(params,'writepathbase') % this folder must already exist
     params.writepathbase=[pwd,'/'];
 end
@@ -125,13 +125,19 @@ rmat0=rmat.*(~eye(Nroi)); % remove diagonal correlation
 if strcmp(params.type,'mst')
             [MST] =backbone_wu(rmat); %N.B.: I modified the BCT backbone function so that it only gets the backbone itself now
 end
+if params.repeats_consensus
+    Versatility = NaN(length(rmat),params.reps);
+    [avgVersatility,stdVersatility] = deal(NaN(1,params.reps));
+end
 
-for j=1:Nkden
-    
+if isempty(gcp('nocreate'))
+    parpool(params.numworkers);
+end
+
+parfor j=1:Nkden    
     disp(['Model ',num2str(j),' of ',num2str(Nkden)])
     tic
-    rmat=rmat0;    
-    
+    rmat=rmat0;        
 
     % threshold matrix
     switch params.type
@@ -176,12 +182,36 @@ for j=1:Nkden
         for k = 1:params.repeats
            [partitions(:,k),cl(k)] = infomap_wrapper_HSB(rmat,writepath,pajekfname,1);
         end    
-        [stats.Versatility(:,j),stats.avgVersatility(j),stats.stdVersatility(j)] = get_nodal_versatility(partitions); % average versatility                
+        [Versatility(:,j),avgVersatility(j),stdVersatility(j)] = get_nodal_versatility(partitions); % average versatility                
        
        
         % use the highest quality/lowest codelength partition
          codelength(j) = min(cl);
          mods(:,j) = partitions(:,find(cl==min(cl),1));
+    else
+        [mods(:,j),codelength(j)]=infomap_wrapper_HSB(rmat,writepath,pajekfname,params.repeats);
+    end
+    delete('*clu*','*net*')
+    toc
+end
+cd(here0)
+rmdir(GCtempFname,'s')
+cd(here);
+
+stats.clusters=mods;            clear mods;
+stats.params=params;            clear params;
+stats.rth=rth;                  clear rth;        
+stats.kdenth=kdenth;            clear kdenth;  
+stats.MuMat=rmat0;              clear rmat0;
+stats.codelength = codelength; clear codelength
+
+if params.repeats_consensus
+    stats.Versatility = Versatility;
+    stats.avgVersatility = avgVersatility;
+    stats.stdVersatiltiy = stdVersatility;
+end
+
+%% Old code
 %         % old:lazy method for finding the best partition
 %         [up,ucounts] = unique_partitions(partitions);
 %         if sum(max(ucounts)==ucounts)==1
@@ -200,22 +230,3 @@ for j=1:Nkden
         % densities and also takes unnecessarily long?
 %         A = agreement(partitions)/params.repeats; % agreement matrix % 
 %         mods(:,j) = consensus_und_mod(A,0.1,20,@infomap_wrapper_HSB); % not sure if 0.1 is the right threshold or 20 is enough runs
-
-    else
-        [mods(:,j),codelength(j)]=infomap_wrapper_HSB(rmat,writepath,pajekfname,params.repeats);
-    end
-    delete('*clu*','*net*')
-    toc
-end
-cd(here0)
-rmdir(GCtempFname,'s')
-cd(here);
-
-stats.clusters=mods;            clear mods;
-stats.params=params;            clear params;
-stats.rth=rth;                  clear rth;        
-stats.kdenth=kdenth;            clear kdenth;  
-stats.MuMat=rmat0;              clear rmat0;
-stats.codelength = codelength; clear codelength
-
-
