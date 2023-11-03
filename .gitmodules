@@ -1,0 +1,3 @@
+[submodule "ExternalFunctions/GenLouvain"]
+	path = ExternalFunctions/GenLouvain
+	url = https://github.com/GenLouvain/GenLouvain.git

@@ -15,4 +15,12 @@ for j=1:Nkden
         if sum(idx)<killTH,matIN(idx,j)=0;end
     end
 end
+%% reduce to the lowest order
+vals = setdiff(unique(matIN),0);
+clrs = matIN;
+for i=1:size(vals,1)
+    clrs(matIN==vals(i))=i;
+end
+clrs=single(clrs);
+matIN = clrs;
 end

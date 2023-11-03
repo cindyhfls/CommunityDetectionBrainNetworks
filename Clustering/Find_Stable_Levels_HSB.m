@@ -66,16 +66,16 @@ Cons.SortCons =NaN(nroi,length(epochs));
 for i = 1:length(epochs)
     [~,cons_id] = min(sum(NMI_dist(epochs{i},epochs{i}))/(length(epochs{i})-1));
     Cons.centers(i,1) = single(epochs{i}(cons_id));
-    Cons.mean_kdenth(i,1) = stats.kdenth(Cons.centers(i,1));
-    Cons.mean_rth(i,1) = stats.rth(Cons.centers(i,1));
+    if isfield(stats,'kdenth')
+        Cons.kdenth(i,1) = stats.kdenth(Cons.centers(i,1));
+    elseif isfield(stats,'k')
+        Cons.k(i,1) = stats.k(Cons.centers(i,1));
+    elseif isfield(stats,'gamma')
+        Cons.gamma(i,1) = stats.gamma(Cons.centers(i,1));
+    end
     Cons.SortCons(:,i) =single(stats.SortClusRO(:,Cons.centers(i,1))); % taking the most representative one
 %     Cons.modeCons(:,i) = mode(stats.SortClusRO(:,epochs{i}),2);
 end
-
-warning('off');
-Explore_parcel_kden_HSB(Cons.SortCons,CWro.cMap,Parcels,Cons.mean_kdenth,fullfile(stats.params.outputdir,'consensus'));
-%  Explore_parcel_kden_HSB(Cons.modeCons,CWro.cMap,Parcels,Cons.mean_kdenth);
-close all;
 
 
 %% Visualize NMI in low-D space
@@ -83,8 +83,17 @@ xy = cmdscale(NMI_dist,3);
 new_partition_centers = Cons.centers;
 figure('position',[100 100 800 800]);
 subplot(2,1,1);hold on;
-scatter3(xy(:,1),xy(:,2),xy(:,3),20,stats.kdenth*100,'filled');colormap(jet);c = colorbar('FontSize',15);
-c.Label.String = 'edge density (%)';
+if isfield(stats,'kdenth')
+    scatter3(xy(:,1),xy(:,2),xy(:,3),20,stats.kdenth*100,'filled');colormap(jet);c = colorbar('FontSize',15);
+    c.Label.String = 'edge density (%)';
+elseif isfield(stats,'k')
+    scatter3(xy(:,1),xy(:,2),xy(:,3),20,stats.k,'filled');colormap(jet);c = colorbar('FontSize',15);
+    c.Label.String = 'number of clusters';
+elseif isfield(stats,'gamma')
+    scatter3(xy(:,1),xy(:,2),xy(:,3),20,stats.gamma,'filled');colormap(jet);c = colorbar('FontSize',15);
+    c.Label.String = '\gamma';
+end
+
 % h = scatter3(xy(new_partition_centers,1),xy(new_partition_centers,2),xy(new_partition_centers,3),100,'k','p','filled');alpha(0.8);
 grid on
 title('solution landscape')

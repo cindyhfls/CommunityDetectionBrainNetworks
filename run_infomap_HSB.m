@@ -73,8 +73,8 @@ switch params.format
         clear data;
     case 'mat'
         load(['./Parcels/Parcels_',parcel_name,'.mat'],'parcels_dmat','ROIxyz');
-        load('Parcels_LR_distances.mat'); parcels_dmat = parcel_distances;% overwrite with the distance matrix that Evan had
-        warning('please remove the line above after testing!');
+%         load('Parcels_LR_distances.mat'); parcels_dmat = parcel_distances;% overwrite with the distance matrix that Evan had
+%         warning('please remove the line above after testing!');
         zmat = smartload(zmatfile);
         zmat = mean(zmat,3);
         params.roi = ROIxyz;   % Coordinates for ROIs, used with exclusion distance
@@ -82,15 +82,15 @@ switch params.format
 end
 %% Use Evan's wrapper
 
-Run_Infomap(zmat, params.dmat, params.xdist, params.lo:params.step:params.hi, params.binary,  params.outputdir, 2,[],500)
+% Run_Infomap(zmat, params.dmat, params.xdist, params.lo:params.step:params.hi, params.binary,  params.outputdir, 2,[],500)
 
-return
+% return
 
 %% Wrapper to Infomap % %
 
 stats=GraphCluster_HSB(zmat,params); % this can take 10-20 minutes depending on your data/sever specs
 
-
+return
 %% Calculate some stats
 % stats.metrics = Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);
 stats.metrics = Matrix_metrics_HSB_mod(stats);

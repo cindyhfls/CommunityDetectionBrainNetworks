@@ -43,7 +43,7 @@ subplot('Position',[.025,0.025,.28,.9])
 params.view= 'dorsal';
 params.fig_handle = gca;
 PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
-title(['kden= ',num2str(kden(j),'%0.3f')],'Color','k')
+title(sprintf('%0.3f',kden(j)),'Color','k')
 
 subplot('Position',[.305,0.505,.44,.45])
 params.view='lat';
@@ -75,7 +75,7 @@ image(sortrows(foo,j));colormap(Cmap);hold on;axis off
 plot([j-.5,j-0.5],[0,size(ROIclust,1)],'k');
 plot([j+.5,j+0.5],[0,size(ROIclust,1)],'k');
 set(gcf,'Color','w')
-text(j-0,-2,'*','FontSize',20)
+text(j-0.5,-2,'*','FontSize',20)
 
 %% get user input to change to a different threshold
 [x,y,button]=ginput(1);
@@ -89,7 +89,7 @@ if tmp<0 || tmp>size(ROIclust,2)
     end
     if strcmp(keyPressed, 's')
         % Define your directory and filename
-        fullPath = [fn,num2str(kden(j)),'.png'];
+        fullPath = [fn,sprintf('%0.3f',kden(j)),'.png'];
         % Save the figure
         saveas(gcf, fullPath);
         disp(['Figure saved as ' fullPath]);

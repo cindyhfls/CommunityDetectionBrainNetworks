@@ -48,12 +48,17 @@ switch nameoption
             colortemplate =load(templatepath);
             [CW,GenOrder] = assign_Infomap_networks_by_template(stats.SortClus,colortemplate,0.1,'dice');%'dice'
         elseif contains(templatepath,'.nii') % e.g. load cifti file
-            Parcels = cifti_read(parcelpath);
+            if isnumeric(parcelpath)
+                Parcels = parcelpath;
+            else
+                Parcels = cifti_read(parcelpath);
+                Parcels = Parcels.cdata;
+            end
             ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
-            newCons.SortClus = zeros(length(Parcels.cdata),size(stats.SortClus,2));
+            newCons.SortClus = zeros(length(Parcels),size(stats.SortClus,2));
             for j = 1:size(stats.SortClus,2)
                 for i = 1:max(stats.SortClus(:,j))
-                     newCons.SortClus(any(Parcels.cdata==find(stats.SortClus(:,j)==i)',2),j) = i;
+                     newCons.SortClus(any(Parcels==find(stats.SortClus(:,j)==i)',2),j) = i;
                 end
             end
             [CW,GenOrder] =assign_Infomap_networks_by_template_cifti(newCons.SortClus,ParcelCommunities,0.1,'dice');%'dice'

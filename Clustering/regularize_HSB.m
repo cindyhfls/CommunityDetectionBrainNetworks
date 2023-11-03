@@ -108,14 +108,23 @@ for j=2:d
 end
 
 % now drop all values to the minimum possible
-vals=unique(newclrs);
-clrs=zeros(c,d);
+% vals=unique(newclrs);
+% clrs=zeros(c,d);
+% for i=1:size(vals,1)
+%     clrs(newclrs==vals(i))=i;
+% end
+% clrs=single(clrs);
+% clrs(clrs <= 1) = 0;
+
+
+vals = setdiff(unique(newclrs),-1);
+clrs = newclrs;
 for i=1:size(vals,1)
     clrs(newclrs==vals(i))=i;
 end
 clrs=single(clrs);
+clrs(clrs==-1) = 0;
 
-% clrs(clrs <= 1) = 0;
 
 if reverse % flip back
     clrs = fliplr(clrs);
