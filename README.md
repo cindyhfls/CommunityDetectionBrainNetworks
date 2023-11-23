@@ -25,6 +25,3 @@ Additional goals include to correct for some bugs in the program and introduce t
    - [NetworkCommunityToolbox](http://commdetect.weebly.com/)
 2. Currently support parcel-based/ROI-based input (Nroi x Nroi).
 3. Full support for vertex-based and voxel-based input in progress.
-
-## Major updates:
-2023/09/03: bringing distance exclusion after the disirable threshold and allow thresholding from backbone MST as a potential option. 
