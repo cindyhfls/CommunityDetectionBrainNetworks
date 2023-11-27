@@ -1,6 +1,14 @@
 % This talks about using silhouette value to choose the optimal number of clusters https://www.mathworks.com/help/stats/clustering.evaluation.silhouetteevaluation.html#bt05vel
 
 function metrics=Matrix_metrics_HSB_mod(stats)
+%   stats.modularity                modularity for each solution
+%   stats.kave                      kave       
+%   stats.A                         Assortativity         
+%   stats.Nc                        Number of components         
+%   stats.NnBc                      Number of nodes in largest component     
+%   stats.Cdns                      Connectedness
+
+
 %
 % This function calculates the modularity for a set of clustering
 % assignments for a given rmatrix. This metric is based on Newman, 2004.

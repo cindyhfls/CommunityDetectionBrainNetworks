@@ -2,29 +2,28 @@
 clear
 % params.outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap/vertex-wise/WashU120/20230502'
 
-params.outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap/vertex-wise/eLABE_Y2/20230509'
+% params.outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap/vertex-wise/eLABE_Y2/20230509'
+params.outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap/vertex-wise/eLABE_Y2_N92/20231102'
 stats.kdenth = importdata(fullfile(params.outputdir,'thresholds.txt'));
+load(fullfile(params.outputdir,'params.mat'));
 
-if ~isfield(stats,'removalidx')
-    stats.removalidx = false(59412,1);
+if ~isfield(params,'removalidx')
+    params.removalidx = false(59412,1);
     if exist(fullfile(params.outputdir,'NaN_idx.mat'),'file')
         load(fullfile(params.outputdir,'NaN_idx.mat'),'idx')
-        stats.removalidx(idx) = true;
+        params.removalidx(idx) = true;
     end
 end
 
-if sum(stats.removalidx)>0
-    stats.clusters = zeros(length(stats.removalidx),size(stats.kdenth,2));
-    stats.clusters(~stats.removalidx,:) = importdata(fullfile(params.outputdir,'rawassn.txt'));
+if sum(params.removalidx)>0
+    stats.clusters = zeros(length(params.removalidx),size(stats.kdenth,2));
+    stats.clusters(~params.removalidx,:) = importdata(fullfile(params.outputdir,'rawassn.txt'));
 end
 
 %%
 minsize = 400;
 nameoption = 3;% 1: automatic, 3: using template
-% stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize,0); % last argument = 1 for sorting from higher threshold to lower threshold
-stats.SortClus = remove_singleton(stats.clusters,minsize);
-stats.SortClus = postprocess_ordinal_multilayer(stats.SortClus);
-stats.SortClus = rename_multiscale(stats.SortClus);
+stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize,0); % last argument = 1 for sorting from higher threshold to lower threshold
 
 templatepath  = 'Gordon2017_17Networks.dlabel.nii';%'Tu_eLABE_Y2_22Networks.nii'%'Gordon2017_17Networks.dlabel.nii';
 ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
@@ -37,7 +36,7 @@ stats.SortClusRO=stats.SortClus;
 for j=1:length(GenOrder),stats.SortClusRO(foo==GenOrder(j))=j;end
 load('Parcels_cortex_nomedialwall.mat')
 %% (optional) Viewing and Manual edit of specific networks
-for iNet =8:9
+for iNet =36:42
     Edit_NetworkColors(stats.SortClusRO,CWro,iNet,Parcels);
 %     pause;
 %     close all;
@@ -46,7 +45,12 @@ end
 % customcolor = distinguishable_colors(1,CWro.cMap); % set color to
 % one
 % CWro=Edit_NetworkColors(newstats.SortSortClus,CWro,iNet,Parcels,customcolor);
+%% Save solution
+cd(params.outputdir)
+save(['solution_minsize_',num2str(minsize),'.mat'],'CWro','stats');
+
 %%
 Explore_parcel_kden_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'));
+
 %% Make video
 Make_parcel_kden_Video(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'video'))

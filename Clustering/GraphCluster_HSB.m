@@ -29,18 +29,13 @@ function stats=GraphCluster_HSB(rmat,params)
 %   stats.clusters                  cluster solutions
 %   stats.params                    params information
 %   stats.MuMat                     mean matrix used for infomapping
-%   stats.modularity                modularity for each solution
+
 %   stats.rth                       rth
 %   stats.kdenth                    kdenth
 %   stats.Nedges                    Nedges     
-%   stats.kave                      kave       
-%   stats.A                         Assortativity         
-%   stats.Nc                        Number of components         
-%   stats.NnBc                      Number of nodes in largest component     
-%   stats.Cdns                      Connectedness
 
 
-%% Set up parameters and initialize stuff
+%% Set up default parameters and initialize stuff
 here=pwd;
 if ischar(rmat),load(rmat);rmat=corrmat;clear corrmat;end
 if ~exist('params','var'), params=struct; end
@@ -69,8 +64,8 @@ if ~isfield(params,'writepathbase') % this folder must already exist
     params.writepathbase=[pwd,'/'];
 end
 
-if params.xdist                   % exclusion distance?
-if ~isfield(params,'roi')         % if yes, need coords of ROI centers
+if params.xdist                   % exclusion distance
+if ~isfield(params,'roi') && isfield(params,'roifname')        % if yes, need coords of ROI centers
     foo=fopen(params.roifname);
     foob=textscan(foo,'%f %f %f %f %s %s %s %s %s','HeaderLines',1);
     params.roi=[foob{1,2},foob{1,3},foob{1,4}];
@@ -81,17 +76,18 @@ end
 if ~isfield(params,'fig'), params.fig=1;end
 
 %% assertions
-assert(sum(sum(isnan(rmat)))==0) % make sure NaNs have been removed already they should not contribute to the assignment or edge density
+sz = size(rmat);
+assert(length(sz)==2,'input has to be only 2-D'); 
+assert(sz(1)==sz(2),'input has to be squared'); % input has to be squared
+assert(sum(isnan(rmat(:)))==0,'input has to not contain NaN') % make sure NaNs have been removed already they should not contribute to the assignment or edge density
+
 %% Initialize outputs
-[~,Nroi,Nsubj]=size(rmat); 
-assert(Nsubj==1); % make sure any averaging takes place before this
-NPE=Nroi*(Nroi-1)/2;
+Nroi = sz(1);
 th=params.lo:params.step:params.hi;
 Nkden=length(th);
-UDidx=find(triu(ones(Nroi),1)==1);      % indices of unique conns
 mods=zeros(Nroi,Nkden,'single');       % Clustering labels
 codelength = zeros(1,Nkden);   
-[modularity,rth,kdenth,SI]=deal(zeros(Nkden,1,'single'));    % Modularity % r threshold % kden threshold  % Silhouette index           
+[rth,kdenth]=deal(zeros(Nkden,1,'single'));    % Modularity % r threshold % kden threshold  % Silhouette index           
 if params.repeats_consensus
         stats.avgVersatility = NaN(1,Nkden);
         stats.stdVersatility = NaN(1,Nkden);
@@ -105,128 +101,84 @@ GCtempFname=['temp',num2str(foobr)];
 mkdir(GCtempFname)
 params.writepathbase=[params.writepathbase,GCtempFname,'/']; 
 cd(params.writepathbase) 
-writepath=params.writepathbase;
+% writepath=params.writepathbase;
 
 %% Distance exclusion
+% To-do: use a generative model for soft distance exclusion
 if isfield(params,'dmat')
     dmat=params.dmat>params.xdist;
-    rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
-    clear dmat
-else 
+else
     dmat=pdist2(params.roi,params.roi)>params.xdist;
-    rmat=rmat.*repmat(dmat,[1,1,Nsubj]);
-    clear dmat
+end
+rmat=rmat.*dmat;
+clear dmat
+
+%% Remove diagonal correlation
+rmat0 = rmat;
+for i = 1:Nroi
+    rmat0(i,i) = 0;
 end
 
-%% Calc mean matrix across subjects
-rmat0=rmat.*(~eye(Nroi)); % remove diagonal correlation
-
-%% Do clustering
-if strcmp(params.type,'mst')
-            [MST] =backbone_wu(rmat); %N.B.: I modified the BCT backbone function so that it only gets the backbone itself now
-end
+%% Preparation
 if params.repeats_consensus
     Versatility = NaN(length(rmat),params.reps);
     [avgVersatility,stdVersatility] = deal(NaN(1,params.reps));
 end
 
-if isempty(gcp('nocreate'))
+if isempty(gcp('nocreate')) && params.numworkers>0
     parpool(params.numworkers);
 end
+[allpartitions,allcodelengths] = deal(cell(1,Nkden));
 
+%% Threshold and write the file to pajek
+[kdenth,rth]  = matrix_thresholder_HSB(rmat0,th,params,1);    
+
+%% Run Infomap on pajek
 parfor j=1:Nkden    
     disp(['Model ',num2str(j),' of ',num2str(Nkden)])
-    tic
-    rmat=rmat0;        
-
-    % threshold matrix
-    switch params.type
-        case 'r'
-            rmat(rmat<th(j))=0;
-            kdenth(j)=sum(rmat(UDidx)~=0)/NPE;
-            rth(j)=min(rmat(UDidx));
-        case 'kden'
-            EL=ceil(th(j)*NPE);
-            rmat = triu(rmat,1);
-            vals = rmat(UDidx);
-            [v,idx]=sort(vals,'descend');
-            v((EL+1):length(UDidx))=0;
-            vals(idx) = v;
-            rmat(UDidx) = vals;
-            rmat = rmat+rmat';
-            rth(j)=v(EL);
-            kdenth(j)=EL/NPE;
-        case 'mst'
-            notintree = rmat.*~MST;
-            v = sort(nonzeros(notintree),'descend');
-            cutoff = ceil(th(j)*NPE)*2-sum(MST(:)>0);
-            if cutoff>0
-                rth(j) = v(cutoff);
-                rmat = MST + notintree.*(notintree>=rth(j));
-            else
-                rth(j) = max(v);
-                rmat = MST;
-            end
-            kdenth(j) = nnz(rmat)/2/NPE;
-    end
-  
-
-    % binarize matrix
-    if params.binary, rmat=single(rmat>0); end
-
-    % Write pajek file, do infomap, load and kill files
-    pajekfname=['paj_col',num2str(j),'.net'];
-    if params.repeats_consensus
+     
+    % call infomap
+    if ~params.repeats_consensus
+         [mods(:,j),codelength(j)]=run_infomap_on_pajekfile_HSB(pajekfname,writepath,params.repeats,params.infomappath,params.version);
+    else
         partitions = NaN(Nroi,params.repeats);
         cl= NaN(1,params.repeats);
         for k = 1:params.repeats
-           [partitions(:,k),cl(k)] = infomap_wrapper_HSB(rmat,writepath,pajekfname,1);
-        end    
-        [Versatility(:,j),avgVersatility(j),stdVersatility(j)] = get_nodal_versatility(partitions); % average versatility                
-       
-       
+            [partitions(:,k),cl(k)] =run_infomap_on_pajekfile_HSB(pajekfname,writepath,1,params.infomappath,params.version);
+        end
+        %         [Versatility(:,j),avgVersatility(j),stdVersatility(j)] = get_nodal_versatility(partitions); % average versatility
         % use the highest quality/lowest codelength partition
-         codelength(j) = min(cl);
-         mods(:,j) = partitions(:,find(cl==min(cl),1));
-    else
-        [mods(:,j),codelength(j)]=infomap_wrapper_HSB(rmat,writepath,pajekfname,params.repeats);
+        codelength(j) = min(cl);
+        mods(:,j) = partitions(:,find(cl==min(cl),1));
+        allpartitions{j} = partitions;
+        allcodelengths{j} = cl;
+        
     end
-    delete('*clu*','*net*')
-    toc
+    delete(fullfile(writepath,pajekfname));
 end
+
 cd(here0)
 rmdir(GCtempFname,'s')
 cd(here);
 
-stats.clusters=mods;            clear mods;
-stats.params=params;            clear params;
-stats.rth=rth;                  clear rth;        
-stats.kdenth=kdenth;            clear kdenth;  
-stats.MuMat=rmat0;              clear rmat0;
-stats.codelength = codelength; clear codelength
+stats.clusters=mods;            
+stats.params=params;            
+stats.rth=rth;                  
+stats.kdenth=kdenth;            
+stats.MuMat=rmat0;              
+stats.codelength = codelength; 
 
 if params.repeats_consensus
-    stats.Versatility = Versatility;
-    stats.avgVersatility = avgVersatility;
-    stats.stdVersatiltiy = stdVersatility;
+    stats.allpartitions = allpartitions;
+    stats.allcodelengths = allcodelengths;
+%     stats.Versatility = Versatility;
+%     stats.avgVersatility = avgVersatility;
+%     stats.stdVersatiltiy = stdVersatility;
 end
 
-%% Old code
-%         % old:lazy method for finding the best partition
-%         [up,ucounts] = unique_partitions(partitions);
-%         if sum(max(ucounts)==ucounts)==1
-%             % if there exists a partition that occurs most often, use that
-%             % as the partition for the current threshold 
-%             mods(:,j) = up(:,max(ucounts)==ucounts);
-%         else
-%             % Otherwise use Hungarian algorithm to match all partitions to the first column and find the
-%             % mode of each node as its assignment for the current threshold  (would
-%             % it take very long for large partitions?)
-%             partitions(:,2:size(partitions,2))= cell2mat(arrayfun(@(kk)pair_labeling(partitions(:,1),partitions(:,kk)),2:size(partitions,2),'UniformOutput',false));
-%             mods(:,j) = mode(partitions,2);
-%         end       
-        
-        % old: consensus clustering approach: seems to be stuck on some
-        % densities and also takes unnecessarily long?
-%         A = agreement(partitions)/params.repeats; % agreement matrix % 
-%         mods(:,j) = consensus_und_mod(A,0.1,20,@infomap_wrapper_HSB); % not sure if 0.1 is the right threshold or 20 is enough runs
+clear params;
+clear mods;
+clear rth;   
+clear kdenth;  
+clear codelength
+clear rmat0;

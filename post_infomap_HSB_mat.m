@@ -14,8 +14,10 @@ clear;close all;clc;
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231024/Infomap_WashU120_low0.010_step0.001_high0.030_xdist20.mat';
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/231011/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.300_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231016/Infomap_WashU120_low0.006_step0.001_high0.200_xdist20.mat';
-filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Tu_342/231016/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.200_xdist20.mat'
-% 
+filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_342/231106/Infomap_eLABE_Y2_N92_healthyterm_low0.010_step0.001_high0.200_xdist20.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Tu_342/231016/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.200_xdist20.mat'
+%
+
 
 load(filename)
 % stats = stats{1}; % at sometime in 202205 I changed the Infomap stats results to a cell format so I can save multiple results
@@ -29,25 +31,13 @@ if ~isfield(stats,'MuMat')||isempty(stats.MuMat)
     stats.MuMat = mean(tmp,3);
 end
 % figdir = fullfile('./Figures',params.IMap_fn);
-%% Sort with the Mucha code
+%% Sorting the solutions sequentially % N.B. original code by J. Powers occassionally changes the community assignment
 minsize = 2;
-stats.SortClus = postprocess_ordinal_multilayer(stats.clusters);
-stats.SortClus = remove_singleton(stats.SortClus,minsize);
-templatepath  ='Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
-% parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
-parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
-% parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
-% [CWro,stats] = assign_network_colors(stats,nameoption); % currently using Gordon 13 network colors as default
-[CWro,stats] = assign_network_colors(stats,3,templatepath,parcelpath);
-
-parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
-load(['Parcels_',parcel_name,'.mat'],'Parcels');
-
-
+stats.SortClus = remove_singleton(stats.clusters,minsize);
+stats.SortClus = postprocess_ordinal_multilayer(stats.SortClus);
 %% Sort all densities and assign colors
-minsize = 2;
+
 nameoption = 3;% 1: automatic, 3: using template
-stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize,0); % last argument = 1 for reverse ordering
 templatepath  ='Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
 % parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
 parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
@@ -77,15 +67,29 @@ Explore_parcel_kden_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile
 Make_parcel_kden_Video(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','')))
 
 %% Now find the stable levels
-[Cons,stats] = Find_Stable_Levels_HSB(stats,CWro,Parcels); % consensus by finding stable levels from the 
+[Cons,stats] = Find_Stable_Levels_HSB(stats); % consensus by finding stable levels from the 
 
 warning('off');
-Explore_parcel_kden_HSB(Cons.SortCons,CWro.cMap,Parcels,Cons.mean_kdenth,fullfile(stats.params.outputdir,'consensus'));
+Explore_parcel_kden_HSB(Cons.SortCons,CWro.cMap,Parcels,Cons.kdenth,fullfile(stats.params.outputdir,'consensus'));
 %  Explore_parcel_kden_HSB(Cons.modeCons,CWro.cMap,Parcels,Cons.mean_kdenth);
 close all;
 
 Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus and plot the figure
-print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_Consensus_metrics.png')),'-dpng');
+% print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_Consensus_metrics.png')),'-dpng');
+%% Plot Fc matrix
+icons = 4
+key = Cons.SortCons(:,icons);key(key==0) = length(CWro.Nets)+1;
+CWro.cMap(length(CWro.Nets)+1,:)=[0.5,0.5,0.5];
+% first sort in the order that goes in
+[~,sortid] = sort(key);
+
+figure;
+% imagesc(stats.MuMat(sortid,sortid));
+Matrix_Org3(stats.MuMat(sortid,sortid),repmat(key(sortid),1,2),10,[-1,1],CWro.cMap,0,jet)
+c = colorbar;
+c.Label.String = 'z(r)'
+set(gca,'FontSize',15);
+print(fullfile(params.outputdir,['ConsensusMatrixPlot_',num2str(icons)]),'-dpng');
 %% Plot spring-embedded plot?
 stats.MuMat;
 G = graph(thresholded_matrix,'upper');% sometimes the matrix is not symmetric? precision problem?
@@ -94,6 +98,10 @@ figure;
 h = plot(G,'ko-','layout','force','UseGravity',true,'NodeCData',stats.SortClusRO(:,1),'NodeColor','flat','MarkerSize',2,'LineWidth',Lwidths);
 colormap(CWro.cMap)
 
+% or use this
+% spring_embedding_func_easy_crossthresh(corrmat,assignments,Kc,L0,distances,xdist,thresholds,outname)
+% Kc: try 1
+% L0:try 25
 return
 %% Simple consensus
 minsize =5;
@@ -274,9 +282,9 @@ for j=toIM % Auto out of IM for each Cons model
     Nets=CWro.Nets;
     
     % Add a way to fix USp?
-    temp=Fix_US_Grouping_HSB(Cons.SortConsRO,j); %This code attempts to assign unspecified ROIs to networks, when possible
+    temp=Fix_US_Grouping_HSB(Cons.SortClusRO,j); %This code attempts to assign unspecified ROIs to networks, when possible
             temp(string(Nets)=='None'|string(Nets)=='Usp')=0;
-    temp=squeeze(Cons.SortConsRO(:,j));
+    temp=squeeze(Cons.SortClusRO(:,j));
     
     % USp networks with less than 5
 %     NnetsI=unique(temp);
@@ -284,7 +292,7 @@ for j=toIM % Auto out of IM for each Cons model
 %         if sum(temp==NnetsI(nn))<5,temp(temp==NnetsI(nn))=0;end
 %     end
 
-    temp = Cons.SortConsRO(:,j);
+    temp = Cons.SortClusRO(:,j);
     if any(temp==0)
         temp(temp==0)=size(cMap,1)+1; % Unspecified network became the last network
         cMap=cat(1,cMap,[0.25,0.25,0.25]);% gray for USp

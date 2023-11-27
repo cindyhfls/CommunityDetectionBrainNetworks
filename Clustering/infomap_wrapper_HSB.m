@@ -50,10 +50,14 @@ if verbose
     c=clock;
     fprintf('\t%2.0f:%2.0f:%2.0f: infomap beginning\n',c(4),c(5),c(6));
 end
-% command = ['!/usr/local/infomap/Infomap --clu -2 -s',...
-command = ['!',infomappath,' --clu -2 -s',...
+
+command = [infomappath,' --clu -2 -s',...
     num2str(randnum),' -N',num2str(reps),' ',pajekFn,' ',pajekPath];
-evalc(command);
+[failed, message] = system(command);
+if failed
+    disp(message)
+end
+
 if verbose
     c=clock;
     fprintf('\t%2.0f:%2.0f:%2.0f: infomap finished\n',c(4),c(5),c(6));
@@ -62,8 +66,14 @@ end
 
 %% Load in modules from clu file
 clufile =[pajekPath,pajekFn(1:end-4),'.clu'];
-[M,CodeLength]=ReadCluFile_HSB(clufile);
-mods=M(:,2);
+% So parfor doesn't crap out
+isclufile = exist(clufile,'file');
+while isclufile == 0
+    pause(1)
+    isclufile = exist(clufile,'file');
+end
+[mods,CodeLength]=ReadCluFile_HSB(clufile);
+
 
 
 %% Clean up files and return

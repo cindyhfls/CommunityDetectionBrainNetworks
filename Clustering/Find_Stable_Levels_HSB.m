@@ -1,4 +1,4 @@
-function [Cons,stats] = Find_Stable_Levels_HSB(stats,CWro,Parcels)
+function [Cons,stats] = Find_Stable_Levels_HSB(stats)
 % 2023.09.18 Jiaxin Cindy Tu
 %% Find pairwise NMI
 nclusters = size(stats.clusters,2);
@@ -68,8 +68,9 @@ for i = 1:length(epochs)
     Cons.centers(i,1) = single(epochs{i}(cons_id));
     if isfield(stats,'kdenth')
         Cons.kdenth(i,1) = stats.kdenth(Cons.centers(i,1));
-    elseif isfield(stats,'k')
-        Cons.k(i,1) = stats.k(Cons.centers(i,1));
+        Cons.rth(i,1) = stats.rth(Cons.centers(i,1));
+    elseif isfield(stats,'K')
+        Cons.k(i,1) = stats.K(Cons.centers(i,1));
     elseif isfield(stats,'gamma')
         Cons.gamma(i,1) = stats.gamma(Cons.centers(i,1));
     end
@@ -86,7 +87,7 @@ subplot(2,1,1);hold on;
 if isfield(stats,'kdenth')
     scatter3(xy(:,1),xy(:,2),xy(:,3),20,stats.kdenth*100,'filled');colormap(jet);c = colorbar('FontSize',15);
     c.Label.String = 'edge density (%)';
-elseif isfield(stats,'k')
+elseif isfield(stats,'K')
     scatter3(xy(:,1),xy(:,2),xy(:,3),20,stats.k,'filled');colormap(jet);c = colorbar('FontSize',15);
     c.Label.String = 'number of clusters';
 elseif isfield(stats,'gamma')

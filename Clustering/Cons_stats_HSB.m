@@ -1,7 +1,14 @@
 function Cons = Cons_stats_HSB(Cons,stats)
 %% Stats of consensus models
+if isfield(Cons,'kdenth')
+    levels = Cons.kdenth;
+elseif isfield(Cons,'K')
+    levels = Cons.K;
+elseif isfield(Cons,'gamma')
+    levels = Cons.gamma;
+end
 Cons.stats=Matrix_metrics_HSB(Cons.SortCons,FisherZ2R_HSB(stats.MuMat),...
-    Cons.mean_rth,stats.params.binary,stats.params.type,Cons.mean_kdenth);
+    Cons.rth,stats.params.binary,stats.params.type,levels);
 
 Ncons=size(Cons.SortCons,2);
 
