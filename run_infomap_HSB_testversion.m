@@ -29,7 +29,7 @@ save(fullfile(params.outputdir,params.IMap_fn),'stats'); % save infomap output t
 
 
 %% Calculate some stats
-% stats.metrics = Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);
+stats.metrics = Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);
 % stats.metrics = Matrix_metrics_HSB_mod(stats);
 
 %% Display something about results

@@ -31,7 +31,7 @@ if ~isfield(stats,'MuMat')||isempty(stats.MuMat)
     stats.MuMat = mean(tmp,3);
 end
 % figdir = fullfile('./Figures',params.IMap_fn);
-%% Sorting the solutions sequentially % N.B. original code by J. Powers occassionally changes the community assignment
+%% Sorting the solutions sequentially % N.B. original code by J. Powers occassionally changes the community assignment so use the one from genlouvain
 minsize = 2;
 stats.SortClus = remove_singleton(stats.clusters,minsize);
 stats.SortClus = postprocess_ordinal_multilayer(stats.SortClus);

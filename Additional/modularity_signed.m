@@ -1,4 +1,4 @@
-function Q = modularity_weighted(W,M, gamma)
+function Q = modularity_signed(W,M, gamma)
 % Rubinov & Sporns 2011
 % adapted from community_louvain.m in BCT toolbox
 %   Inputs:
