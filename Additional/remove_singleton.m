@@ -21,6 +21,7 @@ clrs = matIN;
 for i=1:size(vals,1)
     clrs(matIN==vals(i))=i;
 end
-clrs=single(clrs);
+% clrs=single(clrs); % Changing data type to single seems to cause more trouble downstream than the
+% slight saving in storage
 matIN = clrs;
 end

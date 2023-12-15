@@ -101,7 +101,6 @@ GCtempFname=['temp',num2str(foobr)];
 mkdir(GCtempFname)
 params.writepathbase=[params.writepathbase,GCtempFname,'/']; 
 cd(params.writepathbase) 
-% writepath=params.writepathbase;
 
 %% Distance exclusion
 % To-do: use a generative model for soft distance exclusion
@@ -120,10 +119,6 @@ for i = 1:Nroi
 end
 
 %% Preparation
-if params.repeats_consensus
-    Versatility = NaN(length(rmat),params.reps);
-    [avgVersatility,stdVersatility] = deal(NaN(1,params.reps));
-end
 
 if isempty(gcp('nocreate')) && params.numworkers>0
     parpool(params.numworkers);
@@ -134,28 +129,46 @@ end
 [kdenth,rth]  = matrix_thresholder_HSB(rmat0,th,params,1);    
 
 %% Run Infomap on pajek
-parfor j=1:Nkden    
-    disp(['Model ',num2str(j),' of ',num2str(Nkden)])
-     
-    % call infomap
-    if ~params.repeats_consensus
-         [mods(:,j),codelength(j)]=run_infomap_on_pajekfile_HSB(pajekfname,writepath,params.repeats,params.infomappath,params.version);
-    else
-        partitions = NaN(Nroi,params.repeats);
-        cl= NaN(1,params.repeats);
-        for k = 1:params.repeats
-            [partitions(:,k),cl(k)] =run_infomap_on_pajekfile_HSB(pajekfname,writepath,1,params.infomappath,params.version);
+if params.numworkers>0
+    parfor j=1:Nkden
+        disp(['Model ',num2str(j),' of ',num2str(Nkden)])
+        pajekfname = ['paj_col',num2str(j),'.net'];
+        if ~params.repeats_consensus
+            [mods(:,j),codelength(j)]=run_infomap_on_pajekfile_HSB(pajekfname,params.writepathbase,params.repeats,params.infomappath,params.version);
+        else
+            partitions = NaN(Nroi,params.repeats);
+            cl= NaN(1,params.repeats);
+            for k = 1:params.repeats
+                [partitions(:,k),cl(k)] =run_infomap_on_pajekfile_HSB(pajekfname,params.writepathbase,1,params.infomappath,params.version);
+            end
+            codelength(j) = min(cl);
+            mods(:,j) = partitions(:,find(cl==min(cl),1));
+            allpartitions{j} = partitions;
+            allcodelengths{j} = cl;
         end
-        %         [Versatility(:,j),avgVersatility(j),stdVersatility(j)] = get_nodal_versatility(partitions); % average versatility
-        % use the highest quality/lowest codelength partition
-        codelength(j) = min(cl);
-        mods(:,j) = partitions(:,find(cl==min(cl),1));
-        allpartitions{j} = partitions;
-        allcodelengths{j} = cl;
-        
+        delete(fullfile(writepath,pajekfname));
     end
-    delete(fullfile(writepath,pajekfname));
+else
+    for  j=1:Nkden
+        disp(['Model ',num2str(j),' of ',num2str(Nkden)])
+        pajekfname = ['paj_col',num2str(j),'.net'];
+        if ~params.repeats_consensus
+            [mods(:,j),codelength(j)]=run_infomap_on_pajekfile_HSB(pajekfname,params.writepathbase,params.repeats,params.infomappath,params.version);
+        else
+            partitions = NaN(Nroi,params.repeats);
+            cl= NaN(1,params.repeats);
+            for k = 1:params.repeats
+                [partitions(:,k),cl(k)] =run_infomap_on_pajekfile_HSB(pajekfname,params.writepathbase,1,params.infomappath,params.version);
+            end
+            codelength(j) = min(cl);
+            mods(:,j) = partitions(:,find(cl==min(cl),1));
+            allpartitions{j} = partitions;
+            allcodelengths{j} = cl;
+        end
+        delete(fullfile(params.writepathbase,pajekfname));
+    end
 end
+
 
 cd(here0)
 rmdir(GCtempFname,'s')
@@ -171,9 +184,6 @@ stats.codelength = codelength;
 if params.repeats_consensus
     stats.allpartitions = allpartitions;
     stats.allcodelengths = allcodelengths;
-%     stats.Versatility = Versatility;
-%     stats.avgVersatility = avgVersatility;
-%     stats.stdVersatiltiy = stdVersatility;
 end
 
 clear params;

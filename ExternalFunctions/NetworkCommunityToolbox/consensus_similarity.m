@@ -30,6 +30,7 @@ for i=1:npart
         pairwise_simm(i,j) = zrand(C(i,:),C(j,:));
     end
 end
+
 pairwise_simm = pairwise_simm + pairwise_simm';
 
 % Average pairwise similarity

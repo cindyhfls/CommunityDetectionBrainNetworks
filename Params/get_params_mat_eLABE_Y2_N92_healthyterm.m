@@ -18,7 +18,7 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
     allsubj = importdata('/data/wheelock/data1/people/Cindy/BCP/subject_lists/eLABE_Y2_N113_atleast600frames.txt');
     params.subjidx  = contains(allsubj,healthysubj);
     
-    params.datasetname = 'eLABE_Y2_N92_healthyterm'
+    params.datasetname = 'eLABE_Y2_N92_healthyterm' % folder name to store outputs
        
     timestr=datestr(datetime('now'),'yymmdd');
     
@@ -35,17 +35,17 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
     params.roi = ROIxyz;   % Coordinates for ROIs, used with exclusion distance
     params.dmat = parcels_dmat;% use geodesic distance
    %% Parameters that can vary
-    params.repeats_consensus = 0; % whether or not to get all repeats
+    params.repeats_consensus = 1; % whether or not to get all repeats
     params.binary=0;     % whether or not to binarize the matrix. Default=0;
-    params.type = 'kden'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
+    params.type = 'r'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
     if strcmp(params.type,'mst')
         N = length(zmat);
         params.lo = 2/N; % use the MST density as minimum (N-1)/(N*(N-1)/2)
     else
-        params.lo=0.010;      % Edge density minimum, typically 1% for ROIs
+        params.lo=0;      % Edge density minimum, typically 1% for ROIs
     end
     params.step=0.001;   % Edge density step, typically 0.001
-    params.hi=0.20;      % Edge density maximum, typically 0.1
+    params.hi=0;      % Edge density maximum, typically 0.1
     params.xdist=20;     % Exclusion distance to minimize PSF shared variance
     params.fig = 0; % plot some figures
     if strcmp(params.format,'mat')

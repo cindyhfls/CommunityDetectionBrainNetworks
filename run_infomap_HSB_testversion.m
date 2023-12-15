@@ -7,11 +7,10 @@ path_to_code = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup' % st
 cd(path_to_code);
 addpath(genpath(path_to_code));
 infomappath = fullfile(path_to_code,'ExternalFunctions/infomap');
-% infomappath =  '/data/cn/data1/scripts/CIFTI_RELATED/Infomap/Infomap-0.15.7/Infomap';
 %% Load parameters
 
 params = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath);
-
+% [params] = get_params_mat_WashU120(infomappath);
 %% Use Evan's wrapper?
 
 % Run_Infomap(params.zmat, params.dmat, params.xdist, params.lo:params.step:params.hi, params.binary,  params.outputdir, 2,[],500)
@@ -29,7 +28,7 @@ save(fullfile(params.outputdir,params.IMap_fn),'stats'); % save infomap output t
 
 
 %% Calculate some stats
-stats.metrics = Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);
+% stats.metrics = Matrix_metrics_HSB(stats.clusters,stats.MuMat,stats.rth,stats.params.binary);
 % stats.metrics = Matrix_metrics_HSB_mod(stats);
 
 %% Display something about results

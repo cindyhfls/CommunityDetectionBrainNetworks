@@ -5,7 +5,7 @@ function stats=Matrix_metrics_HSB(clrs,rmat0)
 % Input: 
 % clrs - cluster assignment in nxp where n is the number of nodes
 % and p is the levels (e.g. different K for k-means, different layers for
-% multilayer networks)
+% multilayer networks). p can also be repeats, p can also 1.
 % rmat0 - the matrix in nxn
 
 % Updates:
@@ -19,8 +19,13 @@ function stats=Matrix_metrics_HSB(clrs,rmat0)
 
 % This post talks about using silhouette value to choose the optimal number of clusters https://www.mathworks.com/help/stats/clustering.evaluation.silhouetteevaluation.html#bt05vel
 
+%% make sure rmat0 has no diagonal element
+for ii = 1:length(rmat0)
+    rmat0(ii,ii) = 0;
+end
+
 %% Set parameters
-[~,Nlevels]=size(clrs);
+[Nroi,Nlevels]=size(clrs);
 
 for j = 1:Nlevels
     clusters=squeeze(clrs(:,j));
@@ -50,8 +55,30 @@ for j = 1:Nlevels
     %% Modularity
     % use the Rubinov & Sporns 2011 modularity on signed networks
     stats.Qsigned(j) = modularity_signed(rmat0,clusters);
+    stats.QNG(j) =modularity_newman(rmat0,clusters);
+    %% System segregation
+    % Reference: Chan et al. 2014 PNAS Decreased segregation of brain
+    % systems across the healthy adult lifespan
+    within= rmat0(bsxfun(@eq,clusters,clusters.'));
+    Zw = mean(nonzeros(within));
+    between = rmat0(bsxfun(@ne,clusters,clusters.'));
+    Zb = mean(nonzeros(between));
+    stats.SysSeg(j) = (Zw-Zb)/Zw;    
+     
+    % calculate silhouette index with the correlation matrix itself already
+    % as a distance measure (temporal similarity instead of connectivity
+    % spatial similarity)
+    D = 1-rmat0; for ii = 1:length(D),D(ii,ii)=0;end
+    [avg_within,min_avg_between] = deal(NaN(Nroi,1));
+    for iclu=unique(clusters)'
+        avg_within(clusters==iclu,1) = sum(D(clusters==iclu,clusters==iclu),2)/sum(clusters==iclu)-1;
+        for jclu = setdiff(unique(clusters)',iclu)
+            tmp = sum(D(clusters==iclu,clusters==jclu),2)/sum(clusters==jclu);
+        end
+        min_avg_between(clusters==iclu,1) = min(tmp);
+    end
+    stats.SilTemporal(j)=mean((min_avg_between-avg_within)/max(min_avg_between-avg_within));
 end
-
 
 
 end
@@ -189,4 +216,13 @@ B = B0/s0 - B1/(s0+s1);
 B = (B+B.')/2;                                          % symmetrize modularity matrix
 
 Q = sum(B(bsxfun(@eq,M,M.')));                        % compute modularity
+end
+
+function Q = modularity_newman(A,M)
+deg = sum(A,2);
+twom = sum(deg);
+P = (deg*deg')/twom;
+B = A - P;
+B = (B+B.')/2;                                          % symmetrize modularity matrix
+Q = sum(B(bsxfun(@eq,M,M.')))/twom;                        % compute modularity
 end

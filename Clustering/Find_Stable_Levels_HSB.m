@@ -1,4 +1,4 @@
-function [Cons,stats] = Find_Stable_Levels_HSB(stats)
+function [Cons] = Find_Stable_Levels_HSB(stats)
 % 2023.09.18 Jiaxin Cindy Tu
 %% Find pairwise NMI
 nclusters = size(stats.clusters,2);
@@ -51,7 +51,9 @@ axis off
 axis square
 colorbar;
 title('NMI distance');
-print(fullfile(stats.params.outputdir,'NMIgroups.png'),'-dpng');
+% print(fullfile(stats.params.outputdir,'NMIgroups.png'),'-dpng');
+
+
 %% Examine each epoch
 
 % warning('off');
@@ -74,10 +76,9 @@ for i = 1:length(epochs)
     elseif isfield(stats,'gamma')
         Cons.gamma(i,1) = stats.gamma(Cons.centers(i,1));
     end
-    Cons.SortCons(:,i) =single(stats.SortClusRO(:,Cons.centers(i,1))); % taking the most representative one
-%     Cons.modeCons(:,i) = mode(stats.SortClusRO(:,epochs{i}),2);
+    Cons.SortCons(:,i) =single(stats.SortClus(:,Cons.centers(i,1))); % taking the most representative one
+%     Cons.modeCons(:,i) = mode(stats.SortClus(:,epochs{i}),2);
 end
-
 
 %% Visualize NMI in low-D space
 xy = cmdscale(NMI_dist,3);
@@ -115,5 +116,5 @@ set(gca,'YTickLabel',[],'XTickLabel',[],'ZTickLabel',[]);
 legend(h,'solution centers','location','SW');legend('boxoff');
 view(45,25);
 set(gca,'FontSize',15);
-print(fullfile(stats.params.outputdir,'solution_landscape.png'),'-dpng');
+% print(fullfile(stats.params.outputdir,'solution_landscape.png'),'-dpng');
 end

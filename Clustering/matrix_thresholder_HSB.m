@@ -1,4 +1,4 @@
-function [kdenth,rth] = matrix_thresholder_HSB(rmat0,th,params,writepajek)    
+function [kdenth,rth,v] = matrix_thresholder_HSB(rmat0,th,params,writepajek)    
 
 % modified the script such that the writing of pajek file happens within
 % this function such that each iteration just need to add more edges
@@ -6,6 +6,12 @@ function [kdenth,rth] = matrix_thresholder_HSB(rmat0,th,params,writepajek)
 
 if ~exist('writepajek','var')||isempty(writepajek)
     writepajek = 1; % default is to write pajek file
+end
+if ~isfield(params,'binary')
+    params.binary =0;
+end
+if ~isfield(params,'writepathbase')
+    params.writepathbase =pwd;
 end
 
 type = params.type;

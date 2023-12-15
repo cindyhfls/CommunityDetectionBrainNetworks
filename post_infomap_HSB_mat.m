@@ -11,10 +11,10 @@ clear;close all;clc;
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/2310904/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230927/Infomap_eLABE_Y2_N113_low0.001_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230904/Infomap_eLABE_Y2_N113_low0.006_step0.001_high0.150_xdist0.mat'
-% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231024/Infomap_WashU120_low0.010_step0.001_high0.030_xdist20.mat';
+filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231129/Infomap_WashU120_low0.010_step0.001_high0.200_xdist20.mat';
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/231011/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.300_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231016/Infomap_WashU120_low0.006_step0.001_high0.200_xdist20.mat';
-filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_342/231106/Infomap_eLABE_Y2_N92_healthyterm_low0.010_step0.001_high0.200_xdist20.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_342/231106/Infomap_eLABE_Y2_N92_healthyterm_low0.010_step0.001_high0.200_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Tu_342/231016/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.200_xdist20.mat'
 %
 
@@ -31,22 +31,23 @@ if ~isfield(stats,'MuMat')||isempty(stats.MuMat)
     stats.MuMat = mean(tmp,3);
 end
 % figdir = fullfile('./Figures',params.IMap_fn);
+
+parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
+load(['Parcels_',parcel_name,'.mat'],'Parcels');
 %% Sorting the solutions sequentially % N.B. original code by J. Powers occassionally changes the community assignment so use the one from genlouvain
 minsize = 2;
 stats.SortClus = remove_singleton(stats.clusters,minsize);
 stats.SortClus = postprocess_ordinal_multilayer(stats.SortClus);
 %% Sort all densities and assign colors
 
-nameoption = 3;% 1: automatic, 3: using template
+nameoption = 1;% 1: automatic, 3: using template
 templatepath  ='Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
 % parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
 parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
 % parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
-% [CWro,stats] = assign_network_colors(stats,nameoption); % currently using Gordon 13 network colors as default
-[CWro,stats] = assign_network_colors(stats,3,templatepath,parcelpath);
+% [CWro,stats.SortClusRO] = assign_network_colors(stats.SortClus,nameoption); % currently using Gordon 13 network colors as default
+[CWro,stats.SortClusRO] = assign_network_colors(stats.SortClus,3,templatepath,parcelpath);
 
-parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
-load(['Parcels_',parcel_name,'.mat'],'Parcels');
 
 %% (optional) Viewing and Manual edit of specific networks
 for iNet =8:9
@@ -60,25 +61,65 @@ end
 % CWro=Edit_NetworkColors(newstats.SortSortClus,CWro,iNet,Parcels,customcolor);
 %% Visualize Networks-on-brain and Consensus Edge Density Matrix
 
-% Explore_ROI_kden_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
-Explore_parcel_kden_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'));
+% Explore_ROI_levels_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
+Explore_parcel_levels_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'));
+
 
 %% Make video
 Make_parcel_kden_Video(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','')))
 
-%% Now find the stable levels
-[Cons,stats] = Find_Stable_Levels_HSB(stats); % consensus by finding stable levels from the 
+%% Now find the consensus
+[Cons] = Find_Stable_Levels_HSB(stats); % consensus by finding
+% consecutive stable levels from the NMI, Eggebrecht et al. 2017 Cerebral
+% Cortex but determin the levels in a data driven way rather than
+% pre-defined
+Cons = Cons_metrics_HSB(Cons,stats); % get some stats for the consensus and plot the figure
 
+save(fullfile(params.outputdir,params.IMap_fn),'Cons','-append')
+
+Explore_parcel_levels_HSB(Cons.SortCons,CWro.cMap,Parcels,Cons.kdenth,fullfile(stats.params.outputdir,'consensus'));
+
+%%
+
+S = horzcat(stats.allpartitions{:});
+
+[Cons] = HierarchicalConsensus_Jeub(S,0.05,@(S)permModel(S)); % consensus with Jeub et al. 2018 Scientific Reports
+Plot_HierachicalConsensus_HSB(Cons,S,Cons.C);
+print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_CoassignmentMatrix.png')),'-dpng');
+
+tmp = postprocess_ordinal_multilayer(fliplr(Cons.SortCons));
+Cons.SortCons = fliplr(tmp);
+Cons.SortCons= remove_singleton(Cons.SortCons,2);
+
+save(fullfile(params.outputdir,params.IMap_fn),'Cons','-append')
+
+% Assign color to consensus
+nameoption = 3;% 1: automatic, 3: using template
+templatepath  ='Gordon2017_17Networks.dlabel.nii';% 'Tu_eLABE_Y2_22Networks.nii'
+% parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
+parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
+[CWro,Cons.SortConsRO] = assign_network_colors(Cons.SortCons,3,templatepath,parcelpath);
+
+%%
 warning('off');
-Explore_parcel_kden_HSB(Cons.SortCons,CWro.cMap,Parcels,Cons.kdenth,fullfile(stats.params.outputdir,'consensus'));
-%  Explore_parcel_kden_HSB(Cons.modeCons,CWro.cMap,Parcels,Cons.mean_kdenth);
+Explore_parcel_levels_HSB(Cons.SortConsRO,CWro.cMap,Parcels,Cons.levels,fullfile(stats.params.outputdir,'consensus'));
+%  Explore_parcel_levels_HSB(Cons.modeCons,CWro.cMap,Parcels,Cons.mean_kdenth);
 close all;
 
-Cons = Cons_stats_HSB(Cons,stats); % get some stats for the consensus and plot the figure
-% print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_Consensus_metrics.png')),'-dpng');
+Cons = Cons_metrics_HSB(Cons,stats); % get some stats for the consensus and plot the figure
+print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_Consensus_metrics.png')),'-dpng');
+
+%%
+Zr = NaN(stats.params.repeats);
+for i = 1:stats.params.repeats
+    for j = i+1:stats.params.repeats
+        Zr(j,i) = zrand(stats.allpartitions{ithre}(:,i),stats.allpartitions{ithre}(:,j));
+    end
+end
+
 %% Plot Fc matrix
 icons = 4
-key = Cons.SortCons(:,icons);key(key==0) = length(CWro.Nets)+1;
+key = Cons.SortConsRO(:,icons);key(key==0) = length(CWro.Nets)+1;
 CWro.cMap(length(CWro.Nets)+1,:)=[0.5,0.5,0.5];
 % first sort in the order that goes in
 [~,sortid] = sort(key);
