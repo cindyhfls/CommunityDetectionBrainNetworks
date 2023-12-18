@@ -21,7 +21,7 @@ all_ci = cell(length(subjects),1);
 stats.params.outputdir = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Results/Hierarchical_subject_clustering_Akiki_Abdallah';
 
 %% Obtain community organization for each subject
-parfor i =82:length(subjects)
+parfor i =1:length(subjects)
         disp(subjects{i})
         tic
         %% state paths for subject

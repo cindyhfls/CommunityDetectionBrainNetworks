@@ -4,6 +4,8 @@ function D = similarity_measures_HSB(clu, str)
 % clu - matrix (Nnode x Nassignments)
 % str - string one of the following methods
 % Output:
+% D - not an actual distance measure but a square matrix with diagonal of
+% zeros
 % VI,NMI modified from BCT toolbox partition_distance.m
 % Rand Coefficient and Variants from NetworkCommunityToolbox zrand.m
 % AMI adapted from https://www.mathworks.com/matlabcentral/fileexchange/33144-the-adjusted-mutual-information
@@ -120,6 +122,10 @@ if any(str==string({'zrand','arand','rand'}))
     
 end
 
+%% Set diagonals zero so we can get the upper triangle directly with squareform()
+for ii = 1:length(D)
+    D(ii,ii) = 0;
+end
 
 end
 

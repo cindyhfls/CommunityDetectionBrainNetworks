@@ -1,4 +1,4 @@
-# Community detection in Neuroimaging Data
+# Community Detection in Neuroimaging Data
 
 # Warning: there is a lot of unnecessary function from the legacy versions and external toolboxes which might have compatability issues/bugs. They will be deleted eventually so maybe only download the function that is relevant instead of everything.
 
@@ -21,7 +21,7 @@ Finally a general purpose code to understand the solutions (e.g. different repea
 
 ## Tutorial:
 post_comm_assignment_ordinal.mlx Interactive tutorial for post-community detection for different resolution scales or different temporal points
-post_comm_assignment_categorical.mlx
+post_comm_assignment_categorical.mlx Interactive tutorial for post-community detection for different repeats/bootstraps/subjects/methods
 
 ## Notes:
 1. Code from other toolbox (External Functions):
