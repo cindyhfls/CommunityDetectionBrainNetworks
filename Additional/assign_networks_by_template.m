@@ -1,4 +1,4 @@
-function [CW,GenOrder] = assign_Infomap_networks_by_template(Clust,template,template_match_threshold,template_match_method)
+function [CW,GenOrder] = assign_networks_by_template(Clust,template,template_match_threshold,template_match_method)
 % this function takes a template and make that match to the infomap result
 Nets=setdiff(unique(Clust(:)),0);
 Nnets=length(Nets);
@@ -102,6 +102,11 @@ for i = 1:length(uniqueNets)
         core_clr = CW.cMap(matchnet(1),:);
         d = pdist2(rgb2lab(core_clr),rgb2lab(new_color),'Euclidean');
         [~,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
+        while minval<20% prevent being too similar
+            new_color(minid,:) = [];
+            d(minid) = [];
+            [minval,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
+        end
         for k = 2:length(matchnet)
             CW.Nets{matchnet(k)}=[CW.Nets{matchnet(k)},'_',num2str(k)];
             CW.cMap(matchnet(k),:) = new_color(minid(k-1),:);%change_rgb_color(CW.cMap(matchnet(k-1),:),CW.cMap);
