@@ -1,4 +1,4 @@
-function [CW,GenOrder] = assign_Infomap_networks_by_template_cifti(Clust,template_cifti,template_match_threshold,template_match_method)
+function [CW,GenOrder] = assign_networks_by_template_cifti(Clust,template_cifti,template_match_threshold,template_match_method)
 % this function takes a template and make that match to the infomap result
 % assumes the input cifti is a dlabel file with labels
 Nets=setdiff(unique(Clust(:)),0);
@@ -82,14 +82,15 @@ CW.Nets =NetNames(idx);
 CW.Nets(maxv(1,:)<template_match_threshold) = repelem({'None'},sum(maxv(1,:)<template_match_threshold),1);
 
 CW.cMap = NetcMap(idx,:);
-% CW.cMap(maxv(1,:)<template_match_threshold,:) = 0.5; % set unmatched to gray
+CW.cMap(maxv(1,:)<template_match_threshold,:) = 0.5; % set unmatched to gray %20231218: previously the None network will still be matched to one of the networks! that is bad!
 
 % uniqueNets = setdiff(unique(CW.Nets),{'None','USp'});
 uniqueNets=unique(CW.Nets);
 validNets = any(string(CW.Nets)==string(uniqueNets)',2);
 n_new_color = sum(validNets)-length(uniqueNets);
-
-new_color = distinguishable_colors(n_new_color,unique(CW.cMap,'rows'));
+n_max = 300; % maximum possible distinguishable colors
+assert(n_max>n_new_color,'too many unique clusters, have you really matched across columns and removed the singleton ones?'); % error out if too many colors
+new_color = distinguishable_colors(n_max-n_new_color,unique(CW.cMap,'rows'));
 
 for i = 1:length(uniqueNets)
     matchnet = find(string(CW.Nets)==uniqueNets{i});
@@ -97,7 +98,12 @@ for i = 1:length(uniqueNets)
     if  n_colors >1
         core_clr = CW.cMap(matchnet(1),:);
         d = pdist2(rgb2lab(core_clr),rgb2lab(new_color),'Euclidean');
-        [~,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
+        [minval,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
+        while minval<20% prevent being too similar
+            new_color(minid,:) = [];
+            d(minid) = [];
+            [minval,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
+        end
         for k = 2:length(matchnet)
             CW.Nets{matchnet(k)}=[CW.Nets{matchnet(k)},'_',num2str(k)];
             CW.cMap(matchnet(k),:) = new_color(minid(k-1),:);%change_rgb_color(CW.cMap(matchnet(k-1),:),CW.cMap);

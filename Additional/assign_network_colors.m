@@ -75,10 +75,21 @@ CWro.cMap=CW.cMap(GenOrder,:);
 foo=SortClus;foo(foo==0)=NaN;
 SortClusRO=SortClus;
 for j=1:length(GenOrder),SortClusRO(foo==GenOrder(j))=j;end
-%% Check the colormaps are fine
+%% Visualize the color maps
+N = size(CW.cMap,1);
+M = magic(ceil(sqrt(N)));
+M(M>N) = NaN;
 figure;
-imagesc;colormap(CWro.cMap);
+imagesc(M);axis off;
+[row,col] = find(M);
+for i= row'
+    for j = col'
+        text(i,j,num2str(M(j,i)),'Color','w','FontSize',15);
+    end
+end
+colormap(CW.cMap);
 colorbar;
-title(sprintf('N = %i',size(CWro.cMap,1)))
+axis square
+title(sprintf('N = %i',N))
 pause(1);
 close all;

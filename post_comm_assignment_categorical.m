@@ -43,7 +43,7 @@ end
 % use example_clusters instead of sorted_clusters here because we don't
 % want zeros in the assignments
 
-metric = 'zRand' ,% alternatives: NMI, VI, AMI (N.B. AMImax), zRand,Rand, aRand (case-insensitive) please see similarity_measures_HSB.m for details
+metric = 'HungarianDistance' ,% alternatives: NMI, VI, AMI (N.B. AMImax), zRand,Rand, aRand (case-insensitive) please see similarity_measures_HSB.m for details
 
 tic
 D = similarity_measures_HSB([example_clusters],metric); % calculate a similarity measure 
@@ -69,10 +69,17 @@ else
 end
 
 % convert to low-D representation
-[x] = cmdscale(exp(-D),2); % take the exponential of the negative because cmdcale takes positive matrix only and larger D, not sure this is the best way to do it 
+if lower(metric)=="hungariandistance"
+    x = cmdscale(D,2);
+else
+    x = cmdscale(exp(-D),2); % take the exponential of the negative because cmdcale takes positive matrix only and larger D, not sure this is the best way to do it 
+end
 quality = ones(size(x,1),1); % Replace this with the quality of your algorithm if you have one, for example, modularity or log likelihood 
 figure;
 scatter(x(:,1),x(:,2),10,quality,'filled');colormap(jet); % the distance between points index their similarity and the color of the points indicate the quality function
+grid on
+xlabel('dim 1');
+ylabel('dim 2');
 
 % Conclusion: 
 % if the histogram appear unimodal and the solutions appear in one good cluster in 2D with a clear peak of high quality then we can
