@@ -1,11 +1,16 @@
-function [CWro,SortClusRO] = assign_network_colors(SortClus,nameoption,templatepath,parcelpath)
+function [CWro,SortClusRO] = assign_network_colors(SortClus,nameoption,templatepath,parcelpath,matching_method,matching_threshold)
 %% Set default template
 if  nameoption==3
     if~exist('templatepath','var')||isempty(templatepath)
         templatepath = 'IM_Gordon_2014_333_Parcels.mat';
     end
 end
-
+if ~exist('matching_method','var')||isempty(matching_method)
+    matching_method = 'dice';
+end
+if ~exist('matching_threshold','var')||isempty(matching_threshold)
+    matching_threshold = 0.1;
+end
 %% Label and Color Brain Networks identified by Infomap
 
 % Find the unique networks identified by Infomap
@@ -44,10 +49,10 @@ switch nameoption
     case 3 % name according to a given template
         if isstruct(templatepath) % e.g. colortemplate.IM
             colortemplate = templatepath;
-            [CW,GenOrder] = assign_networks_by_template(SortClus,colortemplate,0.1,'dice');%'dice'
+            [CW,GenOrder] = assign_networks_by_template(SortClus,colortemplate,matching_threshold,matching_method);%'dice'
         elseif contains(templatepath,'.mat') % e.g. load IM structure
             colortemplate =load(templatepath);
-            [CW,GenOrder] = assign_networks_by_template(SortClus,colortemplate,0.1,'dice');%'dice'
+            [CW,GenOrder] = assign_networks_by_template(SortClus,colortemplate,matching_threshold,matching_method);%'dice'
         elseif contains(templatepath,'.nii') % e.g. load cifti file
             if isnumeric(parcelpath)
                 Parcels = parcelpath;
@@ -62,7 +67,7 @@ switch nameoption
                      newCons.SortClus(any(Parcels==find(SortClus(:,j)==i)',2),j) = i;
                 end
             end
-            [CW,GenOrder] =assign_networks_by_template_cifti(newCons.SortClus,ParcelCommunities,0.1,'dice');%'dice'
+            [CW,GenOrder] =assign_networks_by_template_cifti(newCons.SortClus,ParcelCommunities,matching_threshold,matching_method);%'dice'
         end
     case 4
          [CW,GenOrder] = makeCW(params,Nnets);

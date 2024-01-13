@@ -23,11 +23,12 @@ end
 %%
 minsize = 400;
 nameoption = 3;% 1: automatic, 3: using template
-stats.SortClus =OrgClustMat_HSB(stats.clusters,minsize,0); % last argument = 1 for sorting from higher threshold to lower threshold
-
+stats.SortClus   = postprocess_ordinal_multilayer(stats.clusters);  % sort across level to have some consistency across columns
+stats.SortClus = remove_singleton(stats.SortClus ,minsize);
 templatepath  = 'Gordon2017_17Networks.dlabel.nii';%'Tu_eLABE_Y2_22Networks.nii'%'Gordon2017_17Networks.dlabel.nii';
 ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
-[CW,GenOrder] =assign_Infomap_networks_by_template_cifti(stats.SortClus,ParcelCommunities,0.1,'dice');%'dice'
+[CW,GenOrder] = assign_networks_by_template_cifti(stats.SortClus,ParcelCommunities,0.1,'dice')
+
 % The following code prepares the network order and color infomation
 CWro.Nets=CW.Nets(GenOrder);
 CWro.cMap=CW.cMap(GenOrder,:);
@@ -36,7 +37,7 @@ stats.SortClusRO=stats.SortClus;
 for j=1:length(GenOrder),stats.SortClusRO(foo==GenOrder(j))=j;end
 load('Parcels_cortex_nomedialwall.mat')
 %% (optional) Viewing and Manual edit of specific networks
-for iNet =36:42
+for iNet =9:11
     Edit_NetworkColors(stats.SortClusRO,CWro,iNet,Parcels);
 %     pause;
 %     close all;
@@ -50,7 +51,7 @@ cd(params.outputdir)
 save(['solution_minsize_',num2str(minsize),'.mat'],'CWro','stats');
 
 %%
-Explore_parcel_kden_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'));
+Explore_parcel_levels_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'),40);
 
 %% Make video
 Make_parcel_kden_Video(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'video'))
