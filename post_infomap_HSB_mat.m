@@ -11,10 +11,10 @@ clear;close all;clc;
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/2310904/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230927/Infomap_eLABE_Y2_N113_low0.001_step0.001_high0.100_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/eLABE_Y2_prelim_072023_0.75/230904/Infomap_eLABE_Y2_N113_low0.006_step0.001_high0.150_xdist0.mat'
-filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231129/Infomap_WashU120_low0.010_step0.001_high0.200_xdist20.mat';
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231129/Infomap_WashU120_low0.010_step0.001_high0.200_xdist20.mat';
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/231011/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.300_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231016/Infomap_WashU120_low0.006_step0.001_high0.200_xdist20.mat';
-% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_342/231106/Infomap_eLABE_Y2_N92_healthyterm_low0.010_step0.001_high0.200_xdist20.mat'
+filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_342/231106/Infomap_eLABE_Y2_N92_healthyterm_low0.010_step0.001_high0.200_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Tu_342/231016/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.200_xdist20.mat'
 %
 
@@ -40,13 +40,13 @@ stats.SortClus = remove_singleton(stats.clusters,minsize);
 stats.SortClus = postprocess_ordinal_multilayer(stats.SortClus);
 %% Sort all densities and assign colors
 
-nameoption = 1;% 1: automatic, 3: using template
+nameoption = 3;% 1: automatic, 3: using template
 templatepath  ='Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
 % parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
 parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
 % parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
 % [CWro,stats.SortClusRO] = assign_network_colors(stats.SortClus,nameoption); % currently using Gordon 13 network colors as default
-[CWro,stats.SortClusRO] = assign_network_colors(stats.SortClus,3,templatepath,parcelpath);
+[CWro,stats.SortClusRO] = assign_network_colors(stats.SortClus,nameoption,templatepath,parcelpath);
 
 
 %% (optional) Viewing and Manual edit of specific networks
