@@ -14,7 +14,7 @@ function D = similarity_measures_HSB(clu, str)
 
 str = lower(str); % make it case-insensitive by converting to non-capital letters
 
-assert(sum(str==string({'nmi','vi','ami','zrand','arand','rand','hungariandistance'})),"unknown similarity measure, please edit similarity_measures_HSB.m to add your measure");
+assert(sum(str==string({'nmi','vi','ami','zrand','arand','rand','hamming'})),"unknown similarity measure, please edit similarity_measures_HSB.m to add your measure");
 
 assert(~any(isnan(clu(:)))) % make sure no NaN exist
 
@@ -121,19 +121,11 @@ if any(str==string({'zrand','arand','rand'}))
     end
     
 end
-
-if str=="hungariandistance"
-    Hungarian_distance = deal(zeros(p, q));
-     for i = 1:p
-        j_idx = ((i - 1) + 1):q;
-        for j = j_idx
-            Hungarian_distance (i,j)= calc_Hungarian_dist_HSB(clu(:,i),clu(:,j));
-        end
-        Hungarian_distance(j_idx, i) = Hungarian_distance(i, j_idx);
-     end
-     D  = Hungarian_distance;
+%% nHamming
+if str=="hamming"
+    normalized_hamming_distance = pdist(clu','Hamming'); % this is minimized during Hungarian matching
+    D = squareform(normalized_hamming_distance);
 end
-
 %% Set diagonals zero so we can get the upper triangle directly with squareform()
 for ii = 1:length(D)
     D(ii,ii) = 0;

@@ -2,7 +2,6 @@
 % in some group of data
 %% Initialization
 clear;clc;close all;
-% path_to_code = '/data/wheelock/data1/people/Muriah/code/NLA/Codes/FinalCode/BrBx-HSB_110418';
 path_to_code = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup' % state the directory for this code
 cd(path_to_code);
 addpath(genpath(path_to_code));
@@ -10,6 +9,7 @@ infomappath = fullfile(path_to_code,'ExternalFunctions/infomap');
 %% Load parameters
 
 params = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath);
+
 % [params] = get_params_mat_WashU120(infomappath);
 %% Use Evan's wrapper?
 

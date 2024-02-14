@@ -1,4 +1,4 @@
-function Explore_parcel_levels_HSB(ROIclust,Cmap,Parcels,levels,fn)
+function Explore_parcel_levels_HSB(ROIclust,Cmap,Parcels,levels,fn,init_level)
 %
 % This function generates an interactive display of ROI Sortings for
 % various levels, scanning through the kden chosen.
@@ -7,6 +7,10 @@ fprintf('Press on the block to switch between levels\n, and press q for quit and
 if ~exist('fn','var')||isempty(fn)
     fn = 'tmp';
 end
+if ~exist('init_level')||isempty(init_level)
+    init_level=1;        % initial display
+end
+
 %% Set up paramters
 [Nroi,Nlevels]=size(ROIclust);
 if any(ROIclust(:)==0)
@@ -19,7 +23,7 @@ params.ctx='inf';         % also, 'std','inf','vinf'
 
 button=0;
 SortRowVec=[1:Nlevels,1:Nlevels,1:Nlevels];
-j=1;        % initial display
+
 
 
 %% Display figures and write movie
@@ -31,7 +35,7 @@ load('MNI_coord_meshes_32k.mat');
 Anat.CtxL = MNIl;Anat.CtxR = MNIr;
 clear MNIl MNIr
 [Parcel_Nets.CtxL,Parcel_Nets.CtxR] = deal(NaN(size(Parcels.CtxL)));
-key =ROIclust(:,j);
+key =ROIclust(:,init_level);
 for ii = 1:size(key,1)
     Parcel_Nets.CtxL(Parcels.CtxL==ii,1) = key(ii);
     Parcel_Nets.CtxR(Parcels.CtxR==ii,1)= key(ii);
@@ -43,7 +47,7 @@ subplot('Position',[.025,0.025,.28,.9])
 params.view= 'dorsal';
 params.fig_handle = gca;
 PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
-title(sprintf('%0.3f',levels(j)),'Color','k')
+title(sprintf('%0.3f',levels(init_level)),'Color','k')
 
 subplot('Position',[.305,0.505,.44,.45])
 params.view='lat';
@@ -57,25 +61,25 @@ PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
 
 subplot('Position',[.775,0.01,.20,.95])
 hold off
-imagesc(sortrows(ROIclust,j));colormap(Cmap);hold on;axis off
-plot([j-.5,j-0.5],[0,size(ROIclust,1)],'k');
-plot([j+.5,j+0.5],[0,size(ROIclust,1)],'k');
+imagesc(sortrows(ROIclust,init_level));colormap(Cmap);hold on;axis off
+plot([init_level-.5,init_level-0.5],[0,size(ROIclust,1)],'k');
+plot([init_level+.5,init_level+0.5],[0,size(ROIclust,1)],'k');
 set(gcf,'Color','w')
 % text(j-1,-2,'*','FontSize',20)    
 
 % To better appearance, try organizing data a couple of rounds
 foo=ROIclust;
-SRV=circshift(SortRowVec,[(j-1),0]);
+SRV=circshift(SortRowVec,[(init_level-1),0]);
 for k=1:(3*Nlevels)
     foo=sortrows(foo,SRV(k));
 end
 
 foo(foo==0)=NaN;
-image(sortrows(foo,j));colormap(Cmap);hold on;axis off
-plot([j-.5,j-0.5],[0,size(ROIclust,1)],'k');
-plot([j+.5,j+0.5],[0,size(ROIclust,1)],'k');
+image(sortrows(foo,init_level));colormap(Cmap);hold on;axis off
+plot([init_level-.5,init_level-0.5],[0,size(ROIclust,1)],'k');
+plot([init_level+.5,init_level+0.5],[0,size(ROIclust,1)],'k');
 set(gcf,'Color','w')
-text(j-0.5,-2,'*','FontSize',20)
+text(init_level-0.5,-2,'*','FontSize',20)
 
 %% get user input to change to a different threshold
 [x,y,button]=ginput(1);
@@ -89,7 +93,7 @@ if tmp<0 || tmp>size(ROIclust,2)
     end
     if strcmp(keyPressed, 's')
         % Define your directory and filename
-        fullPath = [fn,sprintf('%0.3f',levels(j)),'.png'];
+        fullPath = [fn,sprintf('%0.3f',levels(init_level)),'.png'];
         % Save the figure
         saveas(gcf, fullPath);
         disp(['Figure saved as ' fullPath]);
@@ -97,7 +101,7 @@ if tmp<0 || tmp>size(ROIclust,2)
         return
     end
 else
-    j = tmp;
+    init_level = tmp;
 end
 
 end

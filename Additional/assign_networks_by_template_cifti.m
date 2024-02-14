@@ -12,11 +12,14 @@ end
 if ~exist('template_match_method','var')||isempty(template_match_method)
     template_match_method = 'dice';
 end
+if strcmp(template_match_method,'percentage')
+    template_match_threshold = template_match_threshold*100;
+end
 %% Use the most representative network
 G1=setdiff(unique(Clust(:)),0);
 for j=1:length(G1)
     tmp =sum(Clust==G1(j,1));tmp(tmp==0) = NaN;
-    [G1(j,2)]=mode(tmp); % Adam used max when making manual judgement of network names
+    [G1(j,2)]=max(tmp); % Adam used max when making manual judgement of network names
     G1(j,3) = find(tmp==G1(j,2),1);
 end
 repnets = cell2mat(arrayfun(@(ii)Clust(:,G1(ii,3))==G1(ii,1),G1(:,1),'UniformOutput',false)');
@@ -47,6 +50,7 @@ xticks(1:Nnets);
 yticks(1:nTemplate);
 yticklabels(NetNames)
 ytickangle(45);
+xtickangle(90);
 xlabel('tentative networks','interpreter','none');
 colorbar;
 set(gca,'TickLabelInterpreter','none');
@@ -78,38 +82,62 @@ switch template_match_method
 end
 %% Save to output
 idx = maxi(1,:);
+vals = maxv(1,:);
 CW.Nets =NetNames(idx);
-CW.Nets(maxv(1,:)<template_match_threshold) = repelem({'None'},sum(maxv(1,:)<template_match_threshold),1);
+CW.Nets(maxv(1,:)<template_match_threshold) = repelem({'USp'},sum(maxv(1,:)<template_match_threshold),1);
 
 CW.cMap = NetcMap(idx,:);
-CW.cMap(maxv(1,:)<template_match_threshold,:) = 0.5; % set unmatched to gray %20231218: previously the None network will still be matched to one of the networks! that is bad!
 
-% uniqueNets = setdiff(unique(CW.Nets),{'None','USp'});
-uniqueNets=unique(CW.Nets);
+uniqueNets = setdiff(unique(CW.Nets),{'None','USp'});
 validNets = any(string(CW.Nets)==string(uniqueNets)',2);
 n_new_color = sum(validNets)-length(uniqueNets);
 n_max = 300; % maximum possible distinguishable colors
 assert(n_max>n_new_color,'too many unique clusters, have you really matched across columns and removed the singleton ones?'); % error out if too many colors
 new_color = distinguishable_colors(n_max-n_new_color,unique(CW.cMap,'rows'));
+mind_toexisting= min(pdist2(rgb2lab(NetcMap),rgb2lab(new_color),'Euclidean'));% remove the colors in the template from new_color
+new_color(mind_toexisting<20,:) = [];
 
 for i = 1:length(uniqueNets)
     matchnet = find(string(CW.Nets)==uniqueNets{i});
+    [~,sortmatch] = sort(vals(matchnet),'descend'); % update 2023/12/26 instead of giving the first network the core color, giving it to the maximum match one instead
+    matchnet = matchnet(sortmatch);
     n_colors = length(matchnet);
     if  n_colors >1
         core_clr = CW.cMap(matchnet(1),:);
-        d = pdist2(rgb2lab(core_clr),rgb2lab(new_color),'Euclidean');
-        [minval,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
-        while minval<20% prevent being too similar
-            new_color(minid,:) = [];
-            d(minid) = [];
-            [minval,minid] = mink(d,n_colors-1); % take the one that is relatively closer in perception
-        end
         for k = 2:length(matchnet)
+            % for each new color assignment, first exclude all
+            % possibilities that are too similar to the existing colors
+            mind_toexisting= min(pdist2(rgb2lab(unique(CW.cMap,'rows')),rgb2lab(new_color),'Euclidean'));
+            new_color(mind_toexisting<20,:) = [];
+            
+            % then find the color that is the most similar to the core
+            % color and assign to the second matching network
+            d = pdist2(rgb2lab(core_clr),rgb2lab(new_color),'Euclidean');
+            if isempty(d)
+                error('too many colors to assign')
+            end
+            [~,minid] = min(d);
+            
             CW.Nets{matchnet(k)}=[CW.Nets{matchnet(k)},'_',num2str(k)];
-            CW.cMap(matchnet(k),:) = new_color(minid(k-1),:);%change_rgb_color(CW.cMap(matchnet(k-1),:),CW.cMap);
+            CW.cMap(matchnet(k),:) = new_color(minid,:);%change_rgb_color(CW.cMap(matchnet(k-1),:),CW.cMap);
+            
+            % finally remove that color from being considered as a
+            % possibility
+            new_color(minid,:) = [];
         end
-        new_color(minid,:) = [];
     end
+end
+
+% now match for the unspecified networks
+matchnet = find(string(CW.Nets)=='USp');
+n_USp = length(matchnet);
+
+for k= 1:n_USp
+    d = pdist2(rgb2lab(new_color),rgb2lab(unique(CW.cMap,'rows')),'Euclidean');
+    mind = min(d,[],2);
+    [~,ids] = max(mind); % find n_USp new colors that are most different from the existing ones
+    CW.Nets{matchnet(k)}=[CW.Nets{matchnet(k)},'_',num2str(k)];
+    CW.cMap(matchnet(k),:) = new_color(ids,:);%change_rgb_color(CW.cMap(matchnet(k-1),:),CW.cMap);
 end
 
 idxwithnone = idx;

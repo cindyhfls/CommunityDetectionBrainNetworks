@@ -1,5 +1,5 @@
 function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
-    %%
+    %% Use parallel?
     params.numworkers = 0; % set to 0 to not use parallel
     if params.numworkers>0
         params.version = '0.15.7'; % Powers et al. 2011 Neuron version somehow the parallel acts weird in the 0.18.9 version but this saves a different clu file (only assignments no codelength)

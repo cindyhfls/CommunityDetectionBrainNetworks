@@ -10,7 +10,7 @@ clear MNIl MNIr
 G1=setdiff(unique(Clust(:)),0);
 for j=1:length(G1)
     tmp =sum(Clust==G1(j,1));tmp(tmp==0) = NaN;
-    [G1(j,2)]=mode(tmp); % Adam used max when making manual judgement of network names
+    [G1(j,2)]=max(tmp); % Adam used max when making manual judgement of network names
     G1(j,3) = find(tmp==G1(j,2),1);
 end
 

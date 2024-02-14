@@ -40,16 +40,23 @@ all_ci = cell(length(subjects),1);
 parfor i = 1:length(subjects)
 	all_ci{i,1} = RMT_com(ts_all',1);% 
 end
+save(save_fname);
+return
+%%
+save_fname = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup/Results/Hierarchical_subject_clustering_Akiki_Abdallah/groupconcatenated_ts_removal_of_negative_edges/all_ci_washu120.mat'
 all_ci_combined = horzcat(all_ci{:});
 
 %% Plot the rsults
 [Cons] = HierarchicalConsensus_Jeub(all_ci_combined,0.05); % consensus with Jeub et al. 2018 Scientific Reports
 
+sorted_clusters  = postprocess_ordinal_multilayer(Cons.SortCons);  % sort across level to have some consistency across columns
+sorted_clusters = remove_singleton(sorted_clusters,2); % order to 1-N
+
 % Assign color to consensus
 nameoption = 3;% 1: automatic, 3: using template
 templatepath  ='Gordon2017_17Networks.dlabel.nii';% 'Tu_eLABE_Y2_22Networks.nii'
 parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
-[CWro,Cons.SortConsRO] = assign_network_colors(Cons.SortCons,3,templatepath,parcelpath);
+[CWro,Cons.SortConsRO] = assign_network_colors(sorted_clusters ,3,templatepath,parcelpath);
 
 parcel_name ='Gordon'%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
 load(['Parcels_',parcel_name,'.mat'],'Parcels');

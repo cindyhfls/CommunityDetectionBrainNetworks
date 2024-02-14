@@ -13,16 +13,17 @@ end
 
 C = coclassificationMatrix(S);
 
+rng('default');
 [Sc,Tree]=hierarchicalConsensus(S,alpha,'CoclassificationMatrix',C,'NullModel',N); % using default settings and alpha = 0.05
 
 [Sall,thresholds] = allPartitions(Sc,Tree);
 
-Cons.SortCons = Sall(:,1:end-1)-1; % last one is just single community, we don't need that and because of that we reduce all labels by 1 so the lowest community number start from 1
-Cons.SortCons=remove_gap(Cons.SortCons); % in case there's a gap in the number?
+Cons.allCons = Sall(:,1:end-1)-1; % last one is just single community, we don't need that and because of that we reduce all labels by 1 so the lowest community number start from 1
+Cons.allCons=remove_gap(Cons.allCons); % in case there's a gap in the number?
 Cons.Sc = Sc;
 Cons.Tree = Tree;
 Cons.C = C;
-Cons.levels = 1:size(Cons.SortCons,2);
+Cons.levels = 1:size(Cons.allCons,2);
 
 %% Visualize
 Plot_HierachicalConsensus_HSB(Cons,S,C);
