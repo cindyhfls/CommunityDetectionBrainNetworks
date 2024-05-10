@@ -50,7 +50,7 @@ parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eL
 
 
 %% (optional) Viewing and Manual edit of specific networks
-for iNet =8:9
+for iNet =1
     Edit_NetworkColors(stats.SortClusRO,CWro,iNet,Parcels);
 %     pause;
 %     close all;

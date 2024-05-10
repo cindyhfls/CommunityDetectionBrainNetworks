@@ -84,6 +84,7 @@ switch template_match_method
 end
 %% Save to output
 idx = maxi(1,:);
+vals = maxv(1,:);
 CW.Nets =NetNames(idx);
 CW.Nets(maxv(1,:)<template_match_threshold) = repelem({'USp'},sum(maxv(1,:)<template_match_threshold),1);
 
