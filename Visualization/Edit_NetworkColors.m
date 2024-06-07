@@ -26,7 +26,7 @@ keep(iNet) = true;
 cMap=CW.cMap;
 cMap(~keep,:)=0.5; % color to gray for other networks
 
-figure('position',[100 100 800 800]);
+figure('position',[100 100 300 200]);
 params.Cmap.P=cMap;
 params.TC=1;
 params.ctx='inf';         % also, 'std','inf','vinf'

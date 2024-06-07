@@ -11,12 +11,12 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
     outputdir = '/data/wheelock/data1/people/Cindy/BCP/Infomap';
 
     params.format = 'mat'; % 'mat' or 'cifti' 
-    params.parcel_name = 'Tu_342';
-    params.zmatfile = '/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_Tu_342_20231016.mat'; % assumes the matrix is organized as nroi x nroi x nsubjects
+    params.parcel_name ='Tu_326' % 'Tu_342';
+    params.zmatfile ='/data/wheelock/data1/datasets/eLABE_Y2_N92_healthyterm/pconns/eLABE_Y2_N92_healthyterm_parcellation_Tu_326_20240522.mat'% '/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_Tu_326_20240522.mat'; % assumes the matrix is organized as nroi x nroi x nsubjects
     
     healthysubj = importdata('/data/wheelock/data1/people/Cindy/BCP/subject_lists/eLABE_Y2_N92_healthyterm.txt');
-    allsubj = importdata('/data/wheelock/data1/people/Cindy/BCP/subject_lists/eLABE_Y2_N113_atleast600frames.txt');
-    params.subjidx  = contains(allsubj,healthysubj);
+%     allsubj = importdata('/data/wheelock/data1/people/Cindy/BCP/subject_lists/eLABE_Y2_N113_atleast600frames.txt');
+%     params.subjidx  = contains(allsubj,healthysubj);
     
     params.datasetname = 'eLABE_Y2_N92_healthyterm' % folder name to store outputs
        
@@ -28,25 +28,26 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
     end
     %% Load data    
     params.zmat = smartload(params.zmatfile);
-    params.zmat = mean(params.zmat(:,:,params.subjidx),3);
+%     params.zmat = mean(params.zmat(:,:,params.subjidx),3);
+    params.zmat = mean(params.zmat,3);
     
     params.dmatfile = ['Parcels_',params.parcel_name,'.mat'];
     load(params.dmatfile,'parcels_dmat','ROIxyz');
     params.roi = ROIxyz;   % Coordinates for ROIs, used with exclusion distance
     params.dmat = parcels_dmat;% use geodesic distance
    %% Parameters that can vary
-    params.repeats_consensus = 1; % whether or not to get all repeats
+    params.repeats_consensus = 0; % whether or not to get all repeats. Default = 0
     params.binary=0;     % whether or not to binarize the matrix. Default=0;
-    params.type = 'r'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
+    params.type = 'kden'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
     if strcmp(params.type,'mst')
         N = length(zmat);
         params.lo = 2/N; % use the MST density as minimum (N-1)/(N*(N-1)/2)
     else
-        params.lo=0;      % Edge density minimum, typically 1% for ROIs
+        params.lo=0.0025;      % Edge density minimum, typically 1% for ROIs
     end
-    params.step=0.001;   % Edge density step, typically 0.001
-    params.hi=0;      % Edge density maximum, typically 0.1
-    params.xdist=20;     % Exclusion distance to minimize PSF shared variance
+    params.step=0.0025;   % Edge density step, typically 0.001
+    params.hi=0.1;      % Edge density maximum, typically 0.1
+    params.xdist=30;     % Exclusion distance to minimize PSF shared variance
     params.fig = 0; % plot some figures
     if strcmp(params.format,'mat')
         params.repeats = 500; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is % Power et al. 2011 used 1000 but I think that's too many
@@ -58,4 +59,7 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
         mkdir(params.outputdir);
     end
     params.IMap_fn=sprintf('Infomap_%s_low%1.3f_step%1.3f_high%1.3f_xdist%i.mat',params.datasetname,params.lo,params.step,params.hi,params.xdist); % name your output so you know what it is later
+    %% Back up this file
+    fn = mfilename('fullpath');
+    mfilebackup(fn,params.IMap_fn);
 end

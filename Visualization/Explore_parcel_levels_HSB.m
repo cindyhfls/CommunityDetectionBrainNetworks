@@ -47,7 +47,7 @@ subplot('Position',[.025,0.025,.28,.9])
 params.view= 'dorsal';
 params.fig_handle = gca;
 PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
-title(sprintf('%0.3f',levels(init_level)),'Color','k')
+title(sprintf('%0.4f',levels(init_level)),'Color','k')
 
 subplot('Position',[.305,0.505,.44,.45])
 params.view='lat';
@@ -93,7 +93,7 @@ if tmp<0 || tmp>size(ROIclust,2)
     end
     if strcmp(keyPressed, 's')
         % Define your directory and filename
-        fullPath = [fn,sprintf('%0.3f',levels(init_level)),'.png'];
+        fullPath = [fn,sprintf('%0.4f',levels(init_level)),'.png'];
         % Save the figure
         saveas(gcf, fullPath);
         disp(['Figure saved as ' fullPath]);

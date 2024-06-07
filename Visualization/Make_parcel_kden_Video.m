@@ -37,7 +37,7 @@ subplot('Position',[.025,0.025,.28,.9])
 params.view= 'dorsal';
 params.fig_handle = gca;
 PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
-title(['kden= ',num2str(kden(j),'%0.3f')],'Color','k')
+title(['kden= ',num2str(kden(j),'%1.4f')],'Color','k')
 
 subplot('Position',[.305,0.505,.44,.45])
 params.view='lat';
