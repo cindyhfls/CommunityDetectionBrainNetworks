@@ -14,9 +14,9 @@ clear;close all;clc;
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231129/Infomap_WashU120_low0.010_step0.001_high0.200_xdist20.mat';
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Gordon/231011/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.300_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/WashU120/Gordon/231016/Infomap_WashU120_low0.006_step0.001_high0.200_xdist20.mat';
-filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_342/231106/Infomap_eLABE_Y2_N92_healthyterm_low0.010_step0.001_high0.200_xdist20.mat'
+% filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_342/231106/Infomap_eLABE_Y2_N92_healthyterm_low0.010_step0.001_high0.200_xdist20.mat'
 % filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N113/Tu_342/231016/Infomap_eLABE_Y2_N113_low0.010_step0.001_high0.200_xdist20.mat'
-%
+filename = '/data/wheelock/data1/people/Cindy/BCP/Infomap/parcel-wise/eLABE_Y2_N92_healthyterm/Tu_326/240522/Infomap_eLABE_Y2_N92_healthyterm_low0.003_step0.003_high0.200_xdist30.mat'
 
 
 load(filename)
@@ -35,25 +35,38 @@ end
 parcel_name =params.parcel_name%'eLABE_Y2_prelim_072023_0.75'%'Gordon'% params.parcel_name
 load(['Parcels_',parcel_name,'.mat'],'Parcels');
 %% Sorting the solutions sequentially % N.B. original code by J. Powers occassionally changes the community assignment so use the one from genlouvain
-minsize = 2;
-stats.SortClus = remove_singleton(stats.clusters,minsize);
-stats.SortClus = postprocess_ordinal_multilayer(stats.SortClus);
+minsize = 5;
+stats.SortClus = postprocess_ordinal_multilayer(stats.clusters);
+stats.SortClus = remove_singleton(stats.SortClus,minsize);
+stats.SortClus = remove_few_column_clusters(stats.SortClus);
 %% Sort all densities and assign colors
 
-nameoption = 3;% 1: automatic, 3: using template
-templatepath  ='Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
+nameoption = 3% 1: automatic, 3: using template
+% templatepath = '/data/wheelock/data1/parcellations/Myers-Labonte2024/elabe_n131_parcels_height0.5.dlabel.nii'
+templatepath  ='Myers-Labonte2024_23Networks.dlabel.nii'%'Gordon2017_17Networks.dlabel.nii'% 'Tu_eLABE_Y2_22Networks.nii'
+parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/May2024/eLABE_Y2_N92_healthyterm_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled.dlabel.nii'
 % parcelpath ='/data/wheelock/data1/people/Cindy/BCP/ParcelCreationGradientBoundaryMap/GradientMap/eLABE_Y2_N113_atleast600frames/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.75_nogap_minsize_15_relabelled.dlabel.nii';
-parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
+% parcelpath ='/data/wheelock/data1/parcellations/InfantParcellation_Tu/Oct2023/eLABE_Y2_N113_atleast600frames_avg_corrofcorr_allgrad_LR_smooth2.55_wateredge_avg_global_edgethresh_0.65_heightperc_0.9_minsize_15_relabelled_N342.dlabel.nii';
 % parcelpath = '/data/wheelock/data1/parcellations/333parcels/Parcels_LR.dtseries.nii'
 % [CWro,stats.SortClusRO] = assign_network_colors(stats.SortClus,nameoption); % currently using Gordon 13 network colors as default
 [CWro,stats.SortClusRO] = assign_network_colors(stats.SortClus,nameoption,templatepath,parcelpath);
 
-
-%% (optional) Viewing and Manual edit of specific networks
-for iNet =8:9
+%% Plot single column
+for thresh = [0.25,1.25,1.75,2.75,4,5.75,10,16,19.25]
+    icol = find(round(stats.kdenth*100,2)==thresh)
+    plot_network_assignment_parcel_key(Parcels, stats.SortClusRO(:,icol),CWro.cMap,CWro.Nets)
+    print(fullfile(params.outputdir,sprintf('kden_%1.4f.tif',stats.kdenth(icol))),'-dtiff','-r300');
+    close all
+end
+%% (optional) Viewing and Manual edit of specific networks/Save out those networks
+for iNet =1:length(CWro.Nets)
     Edit_NetworkColors(stats.SortClusRO,CWro,iNet,Parcels);
-%     pause;
-%     close all;
+    minthresh = min(stats.kdenth(any(stats.SortClusRO==iNet)))*100;
+    maxthresh = max(stats.kdenth(any(stats.SortClusRO==iNet)))*100;
+    text(0.2,1.2,sprintf('%1.2f%%-%1.2f%%',minthresh,maxthresh),'Units','Normalized');
+    print(fullfile(params.outputdir,sprintf('Networks%02d',iNet)),'-dtiff','-r300');
+    %     pause;
+    close all;
 end
 % customcolor = [];% fill in if you want to change it
 % customcolor = distinguishable_colors(1,CWro.cMap); % set color to
@@ -62,11 +75,41 @@ end
 %% Visualize Networks-on-brain and Consensus Edge Density Matrix
 
 % Explore_ROI_levels_HSB(foo,CWro.cMap,Anat,params.roi,Cons.epochs.mean_kden);
-Explore_parcel_levels_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'));
+init_level = find(abs(stats.kdenth-0.0275)<1e-4,1); % start at a specific level
+% init_level = 1 % start from first column
+Explore_parcel_levels_HSB(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,'kden'),init_level);
 
-
+%% Plot a legend for the Networks
+N = length(CWro.Nets)
+% figure('Units','inches','position',[10 10 2,3]);%[10 10 5 2]
+figure('Units','inches','position',[10 10 5,3]);%[10 10 5 2]
+h = gscatter(ones(1,N),ones(1,N),CWro.Nets,CWro.cMap,'s',50);
+for i = 1:N
+    set(h(i),'Color','k','MarkerFaceColor',CWro.cMap(i,:));
+end
+legend(CWro.Nets,'interpreter','none','FontSize',10,'location','best','Orientation','horizontal','NumColumns',2);
+legend('boxoff')
+xlim([10,11]);
+axis('off')
+print(fullfile(params.outputdir,'networks_Legend'),'-dtiff','-r300');
 %% Make video
 Make_parcel_kden_Video(stats.SortClusRO,CWro.cMap,Parcels,stats.kdenth,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','')))
+
+%% Consensus Simple (adding higher threshold assignments to lower thresholds)
+mincol = 1; minsize = 5;
+consensusmap = Consensus_infomap_simple_HSB(stats.SortClusRO,mincol,minsize);
+Explore_parcel_levels_HSB(consensusmap,CWro.cMap,Parcels,0,fullfile(params.outputdir,'consensus_simple'));
+
+%% Save the consensus as text and dlabel file for manual editing
+parcelcifti = cifti_read(parcelpath);
+Nparcels = size(stats.clusters,1);
+for k = 1:Nparcels
+    currcolor = CWro.cMap(consensusmap(k),:);
+    parcelcifti.diminfo{1,2}.maps.table(k+1).name = sprintf('%i: %s',k,CWro.Nets{consensusmap(k)});
+    parcelcifti.diminfo{1,2}.maps.table(k+1).rgba = [currcolor';1];
+end
+cifti_write(parcelcifti,fullfile(params.outputdir,'consensus_simple.dlabel.nii'));
+writematrix(consensusmap,fullfile(params.outputdir,'consensus_simple.txt'))
 
 %% Now find the consensus
 [Cons] = Find_Stable_Levels_HSB(stats); % consensus by finding
@@ -85,7 +128,7 @@ S = horzcat(stats.allpartitions{:});
 
 [Cons] = HierarchicalConsensus_Jeub(S,0.05,@(S)permModel(S)); % consensus with Jeub et al. 2018 Scientific Reports
 Plot_HierachicalConsensus_HSB(Cons,S,Cons.C);
-print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_CoassignmentMatrix.png')),'-dpng');
+print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_CoassignmentMatrix')),'-dtiff','-r300');
 
 tmp = postprocess_ordinal_multilayer(fliplr(Cons.SortCons));
 Cons.SortCons = fliplr(tmp);
@@ -107,7 +150,7 @@ Explore_parcel_levels_HSB(Cons.SortConsRO,CWro.cMap,Parcels,Cons.levels,fullfile
 close all;
 
 Cons = Cons_metrics_HSB(Cons,stats); % get some stats for the consensus and plot the figure
-print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_Consensus_metrics.png')),'-dpng');
+print(gcf,fullfile(params.outputdir,strrep(params.IMap_fn,'.mat','_Consensus_metrics')),'-dtiff','-r300');
 
 %%
 Zr = NaN(stats.params.repeats);
@@ -130,7 +173,7 @@ Matrix_Org3(stats.MuMat(sortid,sortid),repmat(key(sortid),1,2),10,[-1,1],CWro.cM
 c = colorbar;
 c.Label.String = 'z(r)'
 set(gca,'FontSize',15);
-print(fullfile(params.outputdir,['ConsensusMatrixPlot_',num2str(icons)]),'-dpng');
+print(fullfile(params.outputdir,['ConsensusMatrixPlot_',num2str(icons)]),'-dtiff','-r300');
 %% Plot spring-embedded plot?
 stats.MuMat;
 G = graph(thresholded_matrix,'upper');% sometimes the matrix is not symmetric? precision problem?
@@ -167,7 +210,7 @@ for i = 1:size(Cons.SortClusRO,2)
     key =Cons.SortClusRO(:,i);
     plot_network_assignment_parcel_key(Parcels, key,CWro.cMap,CWro.Nets,0)  
     text(0.72,0,'simple consensus','Units','Normalized')
-%     print([params.outputdir,'/Consensus_Model_SimpleConsensus'],'-dpng')
+%     print([params.outputdir,'/Consensus_Model_SimpleConsensus'],'-dtiff','-r300')
 %     pause;
 %     clf
 end
@@ -218,7 +261,7 @@ Matrix_Org3(zmat(keepnets,keepnets),...
 D = calc_correlationdist(stats.MuMat(IM.order,IM.order));
 s = silhouette_mod(IM.key(keepnets,2),D(keepnets,keepnets),M);
 text(0.3,-0.05,sprintf('avg SI = %2.3f',mean(s)),'Units','normalized','FontWeight','Bold');
-% print(fullfile(params.outputdir,'Heatmap_SimpleConsensus.png'),'-dpng')
+% print(fullfile(params.outputdir,'Heatmap_SimpleConsensus'),'-dtiff','-r300')
 %% plot the versatility
 if params.repeats_consensus
     figure('position',[100 100 800 400]);
@@ -292,7 +335,7 @@ for i = 1:size(foo,2)
   text(0.72,0,sprintf('Avg density = %2.2f%%',Cons.epochs.mean_kden(i)*100),'Units','Normalized')
 %     plot_network_assignment_parcel_key(Parcels, key,CWro.cMap,CWro.Nets)
 %     text(0.1,1.5,sprintf('Avg density = %2.2f%%',Cons.epochs.mean_kden(i)*100),'Units','Normalized')
-    print([params. outputdir,'/Consensus_Model_',num2str(i)],'-dpng')
+    print([params. outputdir,'/Consensus_Model_',num2str(i)],'-dtiff')
 %     pause;
     clf
 end

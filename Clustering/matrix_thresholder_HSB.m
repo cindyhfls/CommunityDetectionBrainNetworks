@@ -20,9 +20,6 @@ writepath=params.writepathbase;
 Nroi=length(rmat0); 
 NPE=Nroi*(Nroi-1)/2;
 
-% binarize matrix
-if params.binary, rmat0=single(rmat0>0); end
-
 switch type
     case 'mst'
          [MST] =backbone_wu(rmat0); %N.B.: I modified the BCT backbone function so that it only gets the backbone itself now
@@ -57,6 +54,9 @@ switch type
         kdenth = ind/NPE;
 end
 
+if params.binary % binarize the edges to 0 and 1
+   v(:) = 1;
+end
 %% Write Pajek file
 if writepajek
     for j = 1:length(ind)

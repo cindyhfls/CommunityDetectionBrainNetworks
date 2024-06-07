@@ -56,7 +56,7 @@ switch type
 end
 
 %% Draw matrix
-if exist('lims','var')
+if exist('lims','var') && ~isempty(lims)
     imagesc(M,[lims(1) lims(2)]);
 else
     imagesc(M);

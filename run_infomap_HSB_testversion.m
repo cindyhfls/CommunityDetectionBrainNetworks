@@ -5,6 +5,7 @@ clear;clc;close all;
 path_to_code = '/data/wheelock/data1/people/Cindy/BrBx-HSB_infomap_cleanup' % state the directory for this code
 cd(path_to_code);
 addpath(genpath(path_to_code));
+rmpath(genpath('tmp'));
 infomappath = fullfile(path_to_code,'ExternalFunctions/infomap');
 %% Load parameters
 
@@ -41,7 +42,7 @@ end
 
 %% Back up this file
 
-fn = mfilename('fullpath');
-mfilebackup(fn,params.IMap_fn);
+% fn = mfilename('fullpath');
+% mfilebackup(fn,params.IMap_fn);
 
 

@@ -26,7 +26,8 @@ function  [CIJtree,CIJclus] = backbone_wu(CIJ,kden)
 %
 %   Olaf Sporns, Indiana University, 2007/2008/2010/2012
 
-% Modified 220418 Jiaxin Cindy Tu
+% Modified 220418 Jiaxin Cindy Tu so that it only gets the backbone itself
+% now if kden is not provided
 
 N = size(CIJ,1);
 CIJtree = zeros(N);
@@ -62,7 +63,7 @@ CIJnotintree = CIJ.*~CIJtree;
 [a,b] = sort(nonzeros(CIJnotintree),'descend');
 NPE=N*(N-1)/2;
 
-if exist('kden','var')
+if exist('kden','var') && ~isempty(kden)
     cutoff = ceil(kden*NPE)*2-sum(CIJtree(:)>0);
     thr = a(cutoff);
     CIJclus = CIJtree + CIJnotintree.*(CIJnotintree>=thr);

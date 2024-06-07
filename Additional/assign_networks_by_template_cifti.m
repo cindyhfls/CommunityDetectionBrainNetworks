@@ -17,33 +17,39 @@ if strcmp(template_match_method,'percentage')
 end
 %% Use the most representative network
 G1=setdiff(unique(Clust(:)),0);
-for j=1:length(G1)
-    tmp =sum(Clust==G1(j,1));tmp(tmp==0) = NaN;
-    [G1(j,2)]=max(tmp); % Adam used max when making manual judgement of network names
-    G1(j,3) = find(tmp==G1(j,2),1);
-end
-repnets = cell2mat(arrayfun(@(ii)Clust(:,G1(ii,3))==G1(ii,1),G1(:,1),'UniformOutput',false)');
+% for j=1:length(G1)
+%     tmp =sum(Clust==G1(j,1));tmp(tmp==0) = NaN;
+%     [G1(j,2)]=max(tmp); % Adam used max when making manual judgement of network names
+%     G1(j,3) = find(tmp==G1(j,2),1);
+% end
+% repnets = cell2mat(arrayfun(@(ii)Clust(:,G1(ii,3))==G1(ii,1),G1(:,1),'UniformOutput',false)');
 
 %% Find the  overlap for each network
-Nnets = size(repnets,2);
+Nnets = length(G1);
 templateKey =template_cifti.cdata;
 nTemplate = max(templateKey);
-[pct_match,sim_mat] = deal(NaN(nTemplate,Nnets));
+nlevels = size(Clust,2);
+[pct_match,sim_mat] = deal(NaN(nTemplate,Nnets,nlevels));
 
 for j = 1:Nnets
+    j
     for i = 1:nTemplate
-        sim_mat(i,j) = dice((templateKey==i),repnets(:,j));
-        pct_match(i,j) = mean(templateKey(repnets(:,j))==i)*100;
+        for k = 1:nlevels
+           sim_mat(i,j,k) = dice((templateKey==i),Clust(:,k)==j);
+           pct_match(i,j,k) = mean(templateKey(Clust(:,k)==j)==i)*100;
+        end
+%         sim_mat(i,j) = dice((templateKey==i),repnets(:,j));
+%         pct_match(i,j) = mean(templateKey(repnets(:,j))==i)*100;
     end
 end
 %% visualize
 figure(991);
 switch template_match_method
     case 'dice'
-        imagesc(sim_mat);
+        imagesc(nanmax(sim_mat,[],3));
         title('dice coefficient');
     case 'percentage'
-        imagesc(pct_match);
+        imagesc(nanmax(pct_match,[],3));
         title('% composition of network');
 end
 xticks(1:Nnets);
@@ -91,9 +97,10 @@ CW.cMap = NetcMap(idx,:);
 uniqueNets = setdiff(unique(CW.Nets),{'None','USp'});
 validNets = any(string(CW.Nets)==string(uniqueNets)',2);
 n_new_color = sum(validNets)-length(uniqueNets);
-n_max = 300; % maximum possible distinguishable colors
+n_max = 150; % maximum possible distinguishable colors
 assert(n_max>n_new_color,'too many unique clusters, have you really matched across columns and removed the singleton ones?'); % error out if too many colors
-new_color = distinguishable_colors(n_max-n_new_color,unique(CW.cMap,'rows'));
+% new_color = distinguishable_colors(n_max-n_new_color,unique(CW.cMap,'rows')); % we should just set it to new_color = distinguishable_colors(n_max)
+new_color = distinguishable_colors(n_max);
 mind_toexisting= min(pdist2(rgb2lab(NetcMap),rgb2lab(new_color),'Euclidean'));% remove the colors in the template from new_color
 new_color(mind_toexisting<20,:) = [];
 

@@ -125,6 +125,7 @@ end
 if str=="hamming"
     normalized_hamming_distance = pdist(clu','Hamming'); % this is minimized during Hungarian matching
     D = squareform(normalized_hamming_distance);
+    warning('This assumes that the network orders have been matched across assignments')
 end
 %% Set diagonals zero so we can get the upper triangle directly with squareform()
 for ii = 1:length(D)
