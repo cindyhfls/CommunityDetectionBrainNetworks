@@ -55,7 +55,7 @@ switch type
 end
 
 if params.binary % binarize the edges to 0 and 1
-   v(:) = 1;
+   v(:,3) = 1;
 end
 %% Write Pajek file
 if writepajek

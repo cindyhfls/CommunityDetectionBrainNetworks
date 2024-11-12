@@ -12,7 +12,7 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
 
     params.format = 'mat'; % 'mat' or 'cifti' 
     params.parcel_name ='Tu_326' % 'Tu_342';
-    params.zmatfile ='/data/wheelock/data1/datasets/eLABE_Y2_N92_healthyterm/pconns/eLABE_Y2_N92_healthyterm_parcellation_Tu_326_20240522.mat'% '/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_Tu_326_20240522.mat'; % assumes the matrix is organized as nroi x nroi x nsubjects
+    params.zmatfile ='/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N92_healthyterm_parcellation_Tu_326_20240522.mat'% '/data/wheelock/data1/datasets/eLABE/pconns/eLABE_Y2_N113_atleast600frames_parcellation_Tu_326_20240522.mat'; % assumes the matrix is organized as nroi x nroi x nsubjects
     
     healthysubj = importdata('/data/wheelock/data1/people/Cindy/BCP/subject_lists/eLABE_Y2_N92_healthyterm.txt');
 %     allsubj = importdata('/data/wheelock/data1/people/Cindy/BCP/subject_lists/eLABE_Y2_N113_atleast600frames.txt');
@@ -37,7 +37,7 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
     params.dmat = parcels_dmat;% use geodesic distance
    %% Parameters that can vary
     params.repeats_consensus = 0; % whether or not to get all repeats. Default = 0
-    params.binary=0;     % whether or not to binarize the matrix. Default=0;
+    params.binary=1;     % whether or not to binarize the matrix. Default=0;
     params.type = 'kden'; % choose between 'kden','r' and 'mst' for 'density threshold','raw correlation threshold','maximum spanning tree threshold'
     if strcmp(params.type,'mst')
         N = length(zmat);
@@ -47,7 +47,7 @@ function [params] = get_params_mat_eLABE_Y2_N92_healthyterm(infomappath)
     end
     params.step=0.0025;   % Edge density step, typically 0.001
     params.hi=0.1;      % Edge density maximum, typically 0.1
-    params.xdist=30;     % Exclusion distance to minimize PSF shared variance
+    params.xdist=40;     % Exclusion distance to minimize PSF shared variance
     params.fig = 0; % plot some figures
     if strcmp(params.format,'mat')
         params.repeats = 500; % default parameter assuming infomap convergence at n repeats, do NOT change unless you know what it is % Power et al. 2011 used 1000 but I think that's too many

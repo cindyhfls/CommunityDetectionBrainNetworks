@@ -1,8 +1,8 @@
-function [CWro,SortClusRO] = assign_network_colors(SortClus,nameoption,templatepath,parcelpath,matching_method,matching_threshold)
+function [CWro,SortClusRO,GenOrder] = assign_network_colors(SortClus,nameoption,templatepath,parcelpath,matching_method,matching_threshold)
 %% Set default template
 if  nameoption==3
     if~exist('templatepath','var')||isempty(templatepath)
-        templatepath = 'IM_Gordon_2014_333_Parcels.mat';
+        templatepath = 'IM_Gordon_13nets_333Parcels_renamed.mat';
     end
 end
 if ~exist('matching_method','var')||isempty(matching_method)
@@ -10,6 +10,9 @@ if ~exist('matching_method','var')||isempty(matching_method)
 end
 if ~exist('matching_threshold','var')||isempty(matching_threshold)
     matching_threshold = 0.1;
+end
+if ~exist('parcelpath','var')||isempty(parcelpath)
+    parcelpath = [];
 end
 %% Label and Color Brain Networks identified by Infomap
 
@@ -54,17 +57,21 @@ switch nameoption
             colortemplate =load(templatepath);
             [CW,GenOrder] = assign_networks_by_template(SortClus,colortemplate,matching_threshold,matching_method);%'dice'
         elseif contains(templatepath,'.nii') % e.g. load cifti file
+            ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
             if isnumeric(parcelpath)
                 Parcels = parcelpath;
-            else
+            elseif ischar(parcelpath)
                 Parcels = cifti_read(parcelpath);
                 Parcels = Parcels.cdata;
             end
-            ParcelCommunities =cifti_read(templatepath); % still use the Gordon colors for an unknown parcel?
-            newCons.SortClus = zeros(length(Parcels),size(SortClus,2));
-            for j = 1:size(SortClus,2)
-                for i = 1:max(SortClus(:,j))
-                     newCons.SortClus(any(Parcels==find(SortClus(:,j)==i)',2),j) = i;
+            if isempty(parcelpath)
+                newCons.SortClus = SortClus;
+            else
+                newCons.SortClus = zeros(length(Parcels),size(SortClus,2));
+                for j = 1:size(SortClus,2)
+                    for i = 1:max(SortClus(:,j))
+                        newCons.SortClus(any(Parcels==find(SortClus(:,j)==i)',2),j) = i;
+                    end
                 end
             end
             [CW,GenOrder] =assign_networks_by_template_cifti(newCons.SortClus,ParcelCommunities,matching_threshold,matching_method);%'dice'
