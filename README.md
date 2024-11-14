@@ -1,6 +1,6 @@
 # Community Detection in Brain Networks
 
-Functional brain networks can be found with unsupervised, data-driven community detection/clustering methods using functional connectivity data. Sometimes researchers from network science/statistics backgrounds fail to recognize the biological and functional relevance of the brain networks, and obtain solutions purely based on algorithms and lack biological interpretation. On the other hand, researchers from biological/medical backgrounds would run a selected algorithm assuming that it will just produce the desirable outcome without recognizing the stochasticity in the algorithm, the stability of their solution, and the selection of the number of clusters or consensus from a group of solutions. As a result, different network divisions were obtained from the same open dataset (e.g. Tooley et al. 2022 Neuroimage and Marek et al. 2019 Neuroimage on the Adolescent Brain Cognitive Development).
+# Warning: This is still under development. There is a lot of unnecessary function from the legacy versions and external toolboxes which might have compatability issues/bugs. They will be deleted eventually so maybe only download the function that is relevant instead of everything.
 
 Here, my goal is to provide an integrated toolbox that not only considers different community detection algorithms but also focuses on "what next" after one gets the solutions. In particular, I want to guide people through the recent advances in network science in solving the degeneracy problem of community detection, identifying the most likely number of clusters (or a hierarchy of them), and the intuition behind different community detection algorithms or consensus methods. In this way, researchers and audiences can better interpret their results with respect to the broader literature.
 
@@ -41,4 +41,6 @@ post_comm_assignment_categorical.mlx Interactive tutorial for post-community det
    - [GenLouvain](https://github.com/GenLouvain/GenLouvain)
    - [multilouvain](https://github.com/CarloNicolini/multilouvain)[origional C++ code from Vincent Traag](https://github.com/vtraag/louvain-igraph) 
 2. Currently support parcel-based/ROI-based input (Nroi x Nroi).
+
 3. Full support for vertex-based and voxel-based input is in progress.
+

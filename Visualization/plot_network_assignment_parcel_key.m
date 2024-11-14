@@ -30,38 +30,28 @@ Anat.CtxR.data=Parcel_Nets.CtxR;
 params.Cmap.P=cmap;%IM.cMap;jet(nNet)
 params.TC=1;
 params.ctx='inf';         % also, 'std','inf','vinf'
+figure;
+tiledlayout(2, 1, "TileSpacing", "tight");
+ax = nexttile;
+% ax = subplot(2,1,1);
+params.fig_handle = ax;
+params.view= 'lat';       % 'dorsal','post','lat','med'
+PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
+title(sprintf('K = %i',nNet),'FontSize',15)
+ax = nexttile;
+% ax = subplot(2,1,2);
+params.fig_handle = ax;
+params.view ='med';
+PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
 
-% figure;
-% if exist('nets','var')&& ~isempty(nets)   
-%     ax = subplot(2,2,1);
+%     ax = subplot(2,1,1);
 %     params.fig_handle = ax;
 %     params.view='lat';        % also, 'post','lat','med'
 %     PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
 %     title(sprintf('K = %i',nNet),'FontSize',15)
-%     ax = subplot(2,2,2);
+%     ax = subplot(2,1,2);
 %     params.fig_handle = ax;
 %     params.view='med';        % also, 'post','lat','med'
 %     PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
-%     currnets = nets(setdiff(unique(key),[0;none_idx]));
-%     currcmap = cmap(setdiff(unique(key),[0;none_idx]),:);
-%     
-%     subplot(2,2,[3,4]);
-%     h = gscatter(ones(1,nNet),ones(1,nNet),currnets,currcmap,'s',50);
-%     for i = 1:nNet
-%         set(h(i),'Color','k','MarkerFaceColor',currcmap(i,:));
-%     end
-%     legend(currnets,'interpreter','none','FontSize',9,'location','best','Orientation','horizontal','NumColumns',2);
-%     xlim([10,11]);
-%     axis('off')
-% else
-    ax = subplot(2,1,1);
-    params.fig_handle = ax;
-    params.view='lat';        % also, 'post','lat','med'
-    PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
-    title(sprintf('K = %i',nNet),'FontSize',15)
-    ax = subplot(2,1,2);
-    params.fig_handle = ax;
-    params.view='med';        % also, 'post','lat','med'
-    PlotLRMeshes_mod(Anat.CtxL,Anat.CtxR, params);
 % end
 end

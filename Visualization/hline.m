@@ -1,4 +1,5 @@
 function l = hline(y0, varargin)
+%In the newer MATLAB versions you can use yline(y0).
 if nargin < 1
   y0 = 0;
 end
