@@ -1,6 +1,6 @@
 # Community Detection in Neuroimaging Data
 
-# Warning: there is a lot of unnecessary function from the legacy versions and external toolboxes which might have compatability issues/bugs. They will be deleted eventually so maybe only download the function that is relevant instead of everything.
+# Warning: This is still under development. There is a lot of unnecessary function from the legacy versions and external toolboxes which might have compatability issues/bugs. They will be deleted eventually so maybe only download the function that is relevant instead of everything.
 
 ## Introduction and motivation
 This package is currently under development and testing. The initial commit is done by Dr. Adam Eggebrecht and is an upgrade from the [GraphTools] (https://www.nitrc.org/projects/graphtools/), with an attempt to make community detection of brain networks more principled and data-driven, especially in optimizing for the scale (number of communities).
