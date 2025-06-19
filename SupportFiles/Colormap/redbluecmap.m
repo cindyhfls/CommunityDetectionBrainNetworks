@@ -1,4 +1,4 @@
-function map = f_redbluecmap(n)
+function map = redbluecmap(n)
 if nargin < 1
     n = size(get(gcf, 'Colormap'), 1);
 end

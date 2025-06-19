@@ -1,11 +1,6 @@
-Tu_area_parcellation_paper/
-tmp/
-Results/
-Backup/
 *.asv
 Parcels/
 .DS_Store
-Trash/
-legacy/
 ExternalFunctions/*
 Params/*
+private/*

@@ -2,8 +2,17 @@ function [CW,GenOrder] = assign_networks_by_template(Clust,template,template_mat
 % this function takes a template and make that match to the infomap result
 Nets=setdiff(unique(Clust(:)),0);
 Nnets=length(Nets);
-NetNames = template.IM.Nets;
-NetcMap =template.IM.cMap;
+if isfield(template,'IM')
+    NetNames = template.IM.Nets;
+    NetcMap =template.IM.cMap;
+    NetOrder = template.IM.order;
+    NetKey = template.IM.key;
+else
+    NetNames = template.Nets;
+    NetcMap =template.cMap;
+    NetOrder = template.order;
+    NetKey = template.key;
+end
 if ~exist('template_match_threshold','var')||isempty(template_match_threshold)
     template_match_threshold = 0;
 end
@@ -20,8 +29,8 @@ G1=setdiff(unique(Clust(:)),0);
 % repnets = cell2mat(arrayfun(@(ii)Clust(:,G1(ii,3))==G1(ii,1),G1(:,1),'UniformOutput',false)');
 %% Find the  overlap for each network
 Nnets = length(G1);
-[~,sortid] = sort(template.IM.order);
-templateKey =template.IM.key(sortid,2);
+[~,sortid] = sort(NetOrder);
+templateKey =NetKey(sortid,2);
 nTemplate = max(templateKey);
 nlevels = size(Clust,2);
 [pct_match,sim_mat] = deal(NaN(nTemplate,Nnets,nlevels));
@@ -45,7 +54,7 @@ switch template_match_method
         yticklabels(NetNames);
         ytickangle(45);
         xlabel('tentative networks','interpreter','none');
-        ylabel(template.IM.name,'interpreter','none');
+        ylabel('template networks','interpreter','none');
         colorbar;
         title('dice coefficient');
     case 'percentage'
@@ -55,7 +64,7 @@ switch template_match_method
         yticklabels(NetNames);
         ytickangle(45);
         xlabel('tentative networks','interpreter','none');
-        ylabel(template.IM.name,'interpreter','none');
+        ylabel('template networks',interpreter','none');
         colorbar;
         title('% composition of network');
 end
